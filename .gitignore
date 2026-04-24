@@ -7,6 +7,13 @@ node_modules
 .env.local
 .env.*.local
 
+# Downloaded gallery assets (too large for git — sync from bucket or Pixieset)
+/static/galeria/*/*.jpg
+/static/galeria/*/*.jpeg
+/static/galeria/*/*.png
+/static/galeria/*/*.webp
+!/static/galeria/.gitkeep
+
 # Logs
 logs
 *.log

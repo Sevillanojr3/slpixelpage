@@ -1,318 +1,343 @@
 <script>
-  import ModalSolicitar from '$lib/components/ModalSolicitar.svelte';
-  
-  let modalOpen = false;
-  let selectedPaquete = '';
-  
-  const paquetes = [
-    {
-      id: 1,
-      nombre: 'Bodas Premium',
-      descripcion: 'Cobertura completa de tu día especial',
-      imagenes: 250,
-      preview: '/Logos/slpixels_isoblue.png'
-    },
-    {
-      id: 2,
-      nombre: 'Sesión Empresarial',
-      descripcion: 'Fotografía corporativa y de equipo',
-      imagenes: 100,
-      preview: '/Logos/slpixels_isoblue.png'
-    },
-    {
-      id: 3,
-      nombre: 'Eventos Deportivos',
-      descripcion: 'Acción y emoción en cada toma',
-      imagenes: 150,
-      preview: '/Logos/slpixels_isoblue.png'
-    },
-    {
-      id: 4,
-      nombre: 'Graduaciones',
-      descripcion: 'Captura tus logros académicos',
-      imagenes: 80,
-      preview: '/Logos/slpixels_isoblue.png'
-    },
-    {
-      id: 5,
-      nombre: 'Quinceañeras',
-      descripcion: 'Tu fiesta de XV años inolvidable',
-      imagenes: 200,
-      preview: '/Logos/slpixels_isoblue.png'
-    },
-    {
-      id: 6,
-      nombre: 'Sesión Personal',
-      descripcion: 'Retratos únicos y creativos',
-      imagenes: 50,
-      preview: '/Logos/slpixels_isoblue.png'
-    }
+  import { thumbUrl } from '$lib/images.js';
+
+  export let data;
+  const { list } = data;
+
+  const cleanTitle = (t) => (t || '').replace(/\s+de SLPixel$/i, '').trim();
+  const cleaned = list.map((g) => ({ ...g, title: cleanTitle(g.title) }));
+
+  const categories = [
+    { id: 'todos', label: 'Todos' },
+    { id: 'eventos', label: 'Eventos' },
+    { id: 'deportes', label: 'Deportes' },
+    { id: 'corporativo', label: 'Corporativo' },
   ];
-  
-  function abrirModal(nombrePaquete) {
-    selectedPaquete = nombrePaquete;
-    modalOpen = true;
+
+  let filter = 'todos';
+  $: visible = filter === 'todos' ? cleaned : cleaned.filter((g) => g.category === filter);
+
+  $: totalPhotos = visible.reduce((acc, g) => acc + g.count, 0);
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function year(iso) {
+    if (!iso) return '—';
+    return new Date(iso).getFullYear();
   }
 </script>
 
 <svelte:head>
-  <title>Galería - SL Pixel</title>
-  <meta name="description" content="Explora nuestra galería de paquetes fotográficos disponibles" />
+  <title>Galería — SL Pixel</title>
+  <meta name="description" content="Portafolios de fotografía SL Pixel: eventos, deportes y sesiones corporativas." />
 </svelte:head>
 
-<div class="galeria-page">
-  <!-- Header Section -->
-  <section class="galeria-header">
-    <div class="container">
-      <h1>Galería de Paquetes</h1>
-      <p class="subtitle">Selecciona un paquete para solicitar tus fotos</p>
+<!-- Page header -->
+<section class="gal-header">
+  <div class="container">
+    <div class="g-top">
+      <span class="label">Index · Portafolios</span>
+      <span class="numeral">{String(cleaned.length).padStart(3, '0')} / MMXXVI</span>
     </div>
-  </section>
-  
-  <!-- Paquetes Grid -->
-  <section class="section paquetes-section">
-    <div class="container">
-      <div class="paquetes-grid">
-        {#each paquetes as paquete}
-          <div class="paquete-card">
-            <div class="paquete-image">
-              <img src={paquete.preview} alt={paquete.nombre} />
-              <div class="paquete-overlay">
-                <div class="overlay-content">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
-                  </svg>
-                  <p>Fotos bloqueadas</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="paquete-info">
-              <h3>{paquete.nombre}</h3>
-              <p class="descripcion">{paquete.descripcion}</p>
-              <p class="cantidad">{paquete.imagenes} imágenes</p>
-              
-              <button 
-                class="btn-solicitar" 
-                on:click={() => abrirModal(paquete.nombre)}
-              >
-                Solicitar Fotos
-              </button>
-            </div>
-          </div>
-        {/each}
-      </div>
-    </div>
-  </section>
-  
-  <!-- Info Section -->
-  <section class="section info-section">
-    <div class="container">
-      <div class="info-content">
-        <h2>¿Cómo funciona?</h2>
-        <div class="steps">
-          <div class="step">
-            <span class="step-number">1</span>
-            <h4>Selecciona tu paquete</h4>
-            <p>Elige el evento o sesión que deseas ver</p>
-          </div>
-          <div class="step">
-            <span class="step-number">2</span>
-            <h4>Solicita acceso</h4>
-            <p>Ingresa tu correo electrónico</p>
-          </div>
-          <div class="step">
-            <span class="step-number">3</span>
-            <h4>Recibe tus fotos</h4>
-            <p>Te contactaremos con el enlace de descarga</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
 
-<ModalSolicitar bind:isOpen={modalOpen} paqueteNombre={selectedPaquete} />
+    <h1 class="g-title">
+      <span class="italic">Galería.</span>
+      Obra publicada.
+    </h1>
+
+    <div class="g-sub">
+      <p>
+        Una selección de los encargos recientes del estudio. Cada portafolio
+        conserva su secuencia original, sin jerarquías añadidas.
+      </p>
+
+      <div class="g-counters">
+        <div><span class="numeral">{String(visible.length).padStart(2, '0')}</span><span class="label">Portafolios</span></div>
+        <div><span class="numeral">{totalPhotos}</span><span class="label">Fotografías</span></div>
+      </div>
+    </div>
+
+    <div class="filters">
+      {#each categories as c}
+        <button class="f-btn" class:active={filter === c.id} on:click={() => (filter = c.id)}>
+          <span>{c.label}</span>
+        </button>
+      {/each}
+    </div>
+  </div>
+</section>
+
+<!-- Grid -->
+<section class="g-grid-section">
+  <div class="container">
+    {#if cleaned.length === 0}
+      <div class="empty">
+        <p>Aún no hay galerías publicadas.</p>
+        <p class="help">Ejecuta <code>npm run galeria:sync</code> para poblarlas.</p>
+      </div>
+    {:else if visible.length === 0}
+      <p class="empty">No hay galerías en esta categoría.</p>
+    {:else}
+      <ul class="g-grid">
+        {#each visible as g, i (g.slug)}
+          <li class="g-item" style={`--i:${i};`}>
+            <a href={`/galeria/${g.slug}`} class="g-link">
+              <div class="g-meta-top">
+                <span class="numeral">{String(i + 1).padStart(2, '0')}</span>
+                <span class="numeral">— {g.count}</span>
+              </div>
+
+              <div class="g-img">
+                {#if g.cover}
+                  <img src={thumbUrl(g.cover, g.slug)} alt={g.title} loading="lazy" />
+                {/if}
+              </div>
+
+              <div class="g-info">
+                <span class="label">{g.category} · {year(g.date)}</span>
+                <h3>{g.title}</h3>
+                <span class="link-sub">Ver portafolio <span class="arrow">→</span></span>
+              </div>
+            </a>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </div>
+</section>
 
 <style>
-  .galeria-page {
-    min-height: 100vh;
+  .gal-header {
+    padding: clamp(5rem, 10vw, 9rem) 0 clamp(3rem, 6vw, 5rem);
+    border-bottom: 1px solid var(--line);
   }
-  
-  /* Header */
-  .galeria-header {
-    padding: 6rem 0 4rem;
-    text-align: center;
-    background: var(--light-gray);
-  }
-  
-  .galeria-header h1 {
-    margin-bottom: 1rem;
-  }
-  
-  .subtitle {
-    font-size: 1.2rem;
-    color: var(--accent);
-  }
-  
-  /* Paquetes Grid */
-  .paquetes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 3rem;
-  }
-  
-  .paquete-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
-  }
-  
-  .paquete-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  }
-  
-  .paquete-image {
-    position: relative;
-    aspect-ratio: 4/3;
-    overflow: hidden;
-    background: var(--light-gray);
-  }
-  
-  .paquete-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: blur(15px) brightness(0.6);
-    transform: scale(1.1);
-    transition: all 0.4s ease;
-  }
-  
-  .paquete-card:hover .paquete-image img {
-    filter: blur(20px) brightness(0.4);
-    transform: scale(1.15);
-  }
-  
-  .paquete-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+
+  .g-top {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 3rem;
   }
-  
-  .overlay-content {
-    text-align: center;
-    color: var(--bg);
-  }
-  
-  .overlay-content svg {
-    margin-bottom: 1rem;
-    opacity: 0.9;
-  }
-  
-  .overlay-content p {
-    color: var(--bg);
-    font-size: 1rem;
-    font-weight: 400;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-  
-  .paquete-info {
-    padding: 2rem;
-  }
-  
-  .paquete-info h3 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-    font-weight: 400;
-  }
-  
-  .descripcion {
-    margin-bottom: 0.5rem;
-    color: var(--accent);
-  }
-  
-  .cantidad {
-    font-size: 0.9rem;
-    color: var(--accent);
-    margin-bottom: 1.5rem;
-    font-weight: 400;
-  }
-  
-  .btn-solicitar {
-    width: 100%;
-    padding: 1rem;
-    font-size: 0.85rem;
-  }
-  
-  /* Info Section */
-  .info-section {
-    background: var(--light-gray);
-  }
-  
-  .info-content {
-    max-width: 1000px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  
-  .info-content h2 {
-    margin-bottom: 4rem;
-  }
-  
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 3rem;
-  }
-  
-  .step {
-    padding: 2rem;
-  }
-  
-  .step-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-    border: 2px solid var(--fg);
-    border-radius: 50%;
-    font-size: 1.5rem;
+
+  .g-title {
+    font-family: var(--font-display);
     font-weight: 300;
-    margin-bottom: 1.5rem;
+    font-size: clamp(3rem, 12vw, 10rem);
+    letter-spacing: -0.035em;
+    line-height: 0.9;
+    margin-bottom: 3.5rem;
+    font-variation-settings: 'opsz' 144, 'SOFT' 45, 'WONK' 1;
   }
-  
-  .step h4 {
-    font-size: 1.3rem;
-    margin-bottom: 0.5rem;
-    font-weight: 400;
-  }
-  
-  .step p {
+
+  .g-title .italic {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
     color: var(--accent);
+    margin-right: 0.25em;
   }
-  
-  /* Responsive */
-  @media (max-width: 768px) {
-    .galeria-header {
-      padding: 4rem 0 3rem;
-    }
-    
-    .paquetes-grid {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-    
-    .steps {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
+
+  .g-sub {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4rem;
+    align-items: end;
+    padding-bottom: 3rem;
+  }
+
+  .g-sub p { max-width: 48ch; color: var(--ink-2); }
+
+  .g-counters {
+    display: flex;
+    gap: 3rem;
+    white-space: nowrap;
+  }
+
+  .g-counters > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+    border-top: 1px solid var(--line-strong);
+    padding-top: 0.7rem;
+  }
+
+  .g-counters .numeral {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--ink);
+    font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+    letter-spacing: -0.015em;
+  }
+
+  .filters {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid var(--line-strong);
+    padding-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .f-btn {
+    background: transparent;
+    border: none;
+    padding: 0 1.8rem 0 0;
+    margin-right: 1.8rem;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s ease;
+    padding-bottom: 0.45rem;
+  }
+
+  .f-btn::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.35s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+
+  .f-btn:hover { color: var(--ink); }
+  .f-btn:hover::after { width: calc(100% - 1.8rem); }
+  .f-btn.active { color: var(--ink); }
+  .f-btn.active::after { width: calc(100% - 1.8rem); }
+
+  /* ========== GRID ========== */
+  .g-grid-section { padding: clamp(3rem, 6vw, 5rem) 0 clamp(5rem, 10vw, 8rem); }
+
+  .g-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: 2rem;
+    row-gap: clamp(3rem, 5vw, 5rem);
+  }
+
+  .g-item {
+    grid-column: span 6;
+    animation: fadeUp 0.8s ease forwards;
+    animation-delay: calc(var(--i, 0) * 60ms);
+    opacity: 0;
+  }
+
+  /* every 3rd full-width, others 6 cols — editorial asymmetric rhythm */
+  .g-item:nth-child(6n + 1) { grid-column: 1 / span 7; }
+  .g-item:nth-child(6n + 2) { grid-column: 8 / span 5; margin-top: clamp(2rem, 5vw, 4.5rem); }
+  .g-item:nth-child(6n + 3) { grid-column: 1 / span 5; margin-top: clamp(-4rem, -5vw, -2rem); }
+  .g-item:nth-child(6n + 4) { grid-column: 6 / span 7; }
+  .g-item:nth-child(6n + 5) { grid-column: 1 / span 6; margin-top: clamp(-4rem, -5vw, -2rem); }
+  .g-item:nth-child(6n + 6) { grid-column: 7 / span 6; margin-top: clamp(2rem, 5vw, 4.5rem); }
+
+  .g-link { display: block; color: var(--ink); }
+  .g-link:hover { opacity: 1; }
+
+  .g-meta-top {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 0.9rem;
+  }
+
+  .g-img {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--paper-alt);
+  }
+
+  .g-item:nth-child(6n + 1) .g-img,
+  .g-item:nth-child(6n + 4) .g-img { aspect-ratio: 5 / 4; }
+
+  .g-item:nth-child(6n + 3) .g-img,
+  .g-item:nth-child(6n + 5) .g-img { aspect-ratio: 4 / 5; }
+
+  .g-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .g-link:hover .g-img img { transform: scale(1.04); }
+
+  .g-info {
+    padding-top: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .g-info .label { color: var(--muted); font-size: 0.66rem; }
+
+  .g-info h3 {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(1.3rem, 2.2vw, 2.1rem);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin: 0.1rem 0 0.4rem;
+    max-width: 22ch;
+  }
+
+  .link-sub {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    opacity: 0.65;
+    margin-top: 0.5rem;
+  }
+  .link-sub .arrow {
+    display: inline-block;
+    transition: transform 0.35s ease;
+  }
+  .g-link:hover .link-sub { opacity: 1; }
+  .g-link:hover .link-sub .arrow { transform: translateX(6px); }
+
+  /* empty states */
+  .empty {
+    text-align: center;
+    padding: 5rem 0;
+    color: var(--muted);
+  }
+  .empty .help { margin-top: 0.6rem; font-size: 0.85rem; }
+  .empty code {
+    background: var(--paper-alt);
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 900px) {
+    .g-top { flex-direction: column; gap: 0.5rem; padding-bottom: 2rem; }
+    .g-title { margin-bottom: 2rem; }
+    .g-sub { grid-template-columns: 1fr; gap: 2rem; padding-bottom: 2rem; }
+    .g-counters { gap: 2rem; }
+
+    .filters { padding-top: 1rem; }
+    .f-btn { padding: 0 1.2rem 0 0; margin-right: 1.2rem; font-size: 0.72rem; }
+    .f-btn:hover::after,
+    .f-btn.active::after { width: calc(100% - 1.2rem); }
+
+    .g-grid { grid-template-columns: 1fr; row-gap: 3rem; }
+    .g-item:nth-child(n) { grid-column: 1 / -1; margin-top: 0; }
+    .g-item:nth-child(n) .g-img { aspect-ratio: 4 / 3; }
   }
 </style>
-

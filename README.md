@@ -181,6 +181,23 @@ npm run build
 
 Sube la carpeta `build` a Netlify y configura las variables de entorno.
 
+## 🖼️ Galería
+
+El contenido de la galería se arma en dos pasos:
+
+1. **Manifest** (`src/lib/data/galleries.json`) — lista las galerías y sus fotos con `bucket`, `hash`, `ext`. Se genera con el scraper en `/tmp/pixieset-scraper/` (Playwright + stealth) y se importa al proyecto con:
+   ```bash
+   npm run galeria:manifest
+   ```
+
+2. **Imágenes** — se descargan desde `images.pixieset.com` a `static/galeria/<slug>/` en tamaños `large` (grid) y `xlarge` (lightbox):
+   ```bash
+   npm run galeria:download              # descarga todo
+   npm run galeria:download -- --only=caivssaprissa    # solo una galería
+   ```
+
+La carpeta `static/galeria/<slug>/` está en `.gitignore` porque pesa cientos de MB. Para producción, subir esas carpetas a un bucket y apuntar el sitio con `PUBLIC_IMAGES_BASE_URL`. Ver [`docs/HOSTING_IMAGENES.md`](docs/HOSTING_IMAGENES.md) para el análisis de opciones (Cloudflare R2, Bunny, Cloudinary, etc.).
+
 ## 🛠️ Tecnologías
 
 - [SvelteKit](https://kit.svelte.dev/) - Framework

@@ -11,7 +11,10 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check .",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
+		"test": "npm run test:unit -- --run",
+		"galeria:manifest": "node scripts/update-manifest.mjs",
+		"galeria:download": "node scripts/download-images.mjs",
+		"galeria:sync": "npm run galeria:manifest && npm run galeria:download"
 	},
 	"dependencies": {
 		"nodemailer": "^6.9.7"

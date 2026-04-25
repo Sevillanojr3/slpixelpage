@@ -10,9 +10,9 @@
 
   const bySlug = (slug) => all.find((g) => g.slug === slug);
 
-  // Hero: pick a strong portrait-ish photo
-  const heroGallery = bySlug('babyshowermaldonadocastaneda') || all[0];
-  const heroPhoto = heroGallery.photos[4] || heroGallery.photos[0];
+  // Hero: hand-picked portrait from Cumpleaños Meris #50 (photo 051)
+  const heroGallery = bySlug('cumpleanosmeris50') || all[0];
+  const heroPhoto = heroGallery.photos[51] || heroGallery.photos[0];
 
   // About: pick an atmospheric photo from a different gallery
   const aboutGallery = bySlug('cumpleanospancho73') || bySlug('tridenttrustpanamaparty') || all[1] || all[0];

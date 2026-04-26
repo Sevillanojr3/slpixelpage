@@ -2,7 +2,7 @@ import { fail } from '@sveltejs/kit';
 import { read, addCategory, deleteCategory, renameCategory } from '$lib/server/galleries-store.js';
 
 export const load = async () => {
-  const data = read();
+  const data = await read();
   const counts = {};
   for (const g of data.galleries) {
     const k = g.category || '__none__';
@@ -30,7 +30,7 @@ export const actions = {
     const id = (form.get('id') || '').toString().trim() || slugify(label);
     if (!id) return fail(400, { error: 'Slug inválido.' });
     try {
-      addCategory({ id, label });
+      await addCategory({ id, label });
     } catch (e) {
       return fail(409, { error: e.message });
     }
@@ -43,7 +43,7 @@ export const actions = {
     const label = (form.get('label') || '').toString().trim();
     if (!id || !label) return fail(400, { error: 'Faltan datos.' });
     try {
-      renameCategory(id, label);
+      await renameCategory(id, label);
     } catch (e) {
       return fail(400, { error: e.message });
     }
@@ -53,7 +53,7 @@ export const actions = {
   delete: async ({ request }) => {
     const form = await request.formData();
     const id = (form.get('id') || '').toString();
-    deleteCategory(id);
+    await deleteCategory(id);
     return { ok: true };
   },
 };

@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { read, upsertGallery, deleteGallery, setGalleryCategory } from '$lib/server/galleries-store.js';
 
 export const load = async () => {
-  const data = read();
+  const data = await read();
   return {
     galleries: data.galleries.map((g) => ({
       slug: g.slug,
@@ -32,11 +32,11 @@ export const actions = {
     let slug = (form.get('slug') || '').toString().trim() || slugify(title);
     if (!title || !slug) return fail(400, { error: 'Título y slug requeridos.' });
 
-    const data = read();
+    const data = await read();
     if (data.galleries.some((g) => g.slug === slug)) {
       return fail(409, { error: `Ya existe una galería con slug "${slug}".` });
     }
-    upsertGallery({ slug, title, category, date, photos: [] });
+    await upsertGallery({ slug, title, category, date, photos: [] });
     throw redirect(303, `/admin/galerias/${slug}`);
   },
 
@@ -44,14 +44,14 @@ export const actions = {
     const form = await request.formData();
     const slug = (form.get('slug') || '').toString();
     const category = (form.get('category') || '').toString() || null;
-    setGalleryCategory(slug, category);
+    await setGalleryCategory(slug, category);
     return { ok: true };
   },
 
   delete: async ({ request }) => {
     const form = await request.formData();
     const slug = (form.get('slug') || '').toString();
-    deleteGallery(slug);
+    await deleteGallery(slug);
     return { ok: true };
   },
 };

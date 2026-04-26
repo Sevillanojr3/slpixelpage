@@ -8,8 +8,8 @@ export async function POST({ request, locals }) {
   const key = String(body.key || '');
   const filename = String(body.filename || '');
   if (!slug || !key) return json({ error: 'slug y key requeridos' }, { status: 400 });
-  if (!getGallery(slug)) return json({ error: 'Galería no existe' }, { status: 404 });
+  if (!(await getGallery(slug))) return json({ error: 'Galería no existe' }, { status: 404 });
 
-  addPhotoToGallery(slug, { key, filename, uploadedAt: new Date().toISOString() });
+  await addPhotoToGallery(slug, { key, filename, uploadedAt: new Date().toISOString() });
   return json({ ok: true });
 }

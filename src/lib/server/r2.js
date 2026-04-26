@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { envVar } from './env.js';
 
@@ -37,5 +37,28 @@ export async function presignPut(key, contentType, expiresInSec = 600) {
 
 export async function deleteObject(key) {
   const cmd = new DeleteObjectCommand({ Bucket: bucket(), Key: key });
+  await getClient().send(cmd);
+}
+
+/** Read a JSON object from R2. Returns null if the key does not exist. */
+export async function getJson(key) {
+  try {
+    const res = await getClient().send(new GetObjectCommand({ Bucket: bucket(), Key: key }));
+    const text = await res.Body.transformToString('utf8');
+    return JSON.parse(text);
+  } catch (e) {
+    if (e?.name === 'NoSuchKey' || e?.$metadata?.httpStatusCode === 404) return null;
+    throw e;
+  }
+}
+
+/** Write a JSON object to R2. */
+export async function putJson(key, data) {
+  const cmd = new PutObjectCommand({
+    Bucket: bucket(),
+    Key: key,
+    Body: JSON.stringify(data, null, 2) + '\n',
+    ContentType: 'application/json; charset=utf-8',
+  });
   await getClient().send(cmd);
 }

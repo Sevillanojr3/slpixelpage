@@ -18,7 +18,7 @@ export async function POST({ request, locals }) {
   const filename = String(body.filename || '').trim();
   const contentType = String(body.contentType || 'application/octet-stream');
   if (!slug || !filename) return json({ error: 'slug y filename requeridos' }, { status: 400 });
-  if (!getGallery(slug)) return json({ error: 'Galería no existe' }, { status: 404 });
+  if (!(await getGallery(slug))) return json({ error: 'Galería no existe' }, { status: 404 });
 
   const stamp = Date.now().toString(36);
   const key = `${slug}/${stamp}-${safeName(filename)}`;

@@ -3,7 +3,7 @@ import { read, getGallery, upsertGallery, removePhotoFromGallery, deleteGallery 
 import { deleteObject, publicUrl } from '$lib/server/r2.js';
 
 export const load = async ({ params }) => {
-  const data = read();
+  const data = await read();
   const gallery = data.galleries.find((g) => g.slug === params.slug);
   if (!gallery) throw error(404, 'Galería no encontrada');
   return {
@@ -27,7 +27,7 @@ export const actions = {
     const category = (form.get('category') || '').toString() || null;
     const date = (form.get('date') || '').toString() || null;
     if (!title) return fail(400, { error: 'Título requerido.' });
-    upsertGallery({ slug: params.slug, title, category, date });
+    await upsertGallery({ slug: params.slug, title, category, date });
     return { ok: true };
   },
 
@@ -40,14 +40,14 @@ export const actions = {
     } catch (e) {
       console.warn('[admin] R2 delete failed (continuing):', e.message);
     }
-    removePhotoFromGallery(params.slug, key);
+    await removePhotoFromGallery(params.slug, key);
     return { ok: true };
   },
 
   delete: async ({ params }) => {
-    const g = getGallery(params.slug);
+    const g = await getGallery(params.slug);
     if (!g) throw redirect(303, '/admin/galerias');
-    deleteGallery(params.slug);
+    await deleteGallery(params.slug);
     throw redirect(303, '/admin/galerias');
   },
 };

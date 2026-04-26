@@ -13,7 +13,7 @@
 
       <div class="cta prose">
         <h3>¿Conversamos?</h3>
-        <a href="mailto:slpixelstudio@gmail.com" class="email">slpixelstudio@gmail.com</a>
+        <a href="mailto:info@slpixel.com" class="email">info@slpixel.com</a>
       </div>
     </div>
 
@@ -44,10 +44,7 @@
         <span class="label">Social</span>
         <ul>
           <li>
-            <a href="https://instagram.com/slpixel" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
-          </li>
-          <li>
-            <a href="https://facebook.com/slpixel" target="_blank" rel="noopener noreferrer">Facebook ↗</a>
+            <a href="https://www.instagram.com/slpixel/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
           </li>
         </ul>
       </div>

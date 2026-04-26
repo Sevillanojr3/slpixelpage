@@ -1,105 +1,161 @@
 <script>
+  import { onMount } from 'svelte';
+
   export let isOpen = false;
   export let paqueteNombre = '';
-  
+
   let email = '';
+  let mensaje = '';
   let loading = false;
   let success = false;
   let error = '';
-  
-  function closeModal() {
-    if (!loading) {
-      isOpen = false;
-      email = '';
-      success = false;
-      error = '';
-    }
+  /** @type {{ mailto:string, subject:string, body:string } | null} */
+  let fallback = null;
+
+  $: if (isOpen) {
+    // reset transient state every time the modal is reopened
+    success = false;
+    error = '';
+    fallback = null;
   }
-  
+
+  function closeModal() {
+    if (loading) return;
+    isOpen = false;
+    email = '';
+    mensaje = '';
+    success = false;
+    error = '';
+    fallback = null;
+  }
+
   async function handleSubmit() {
     if (!email || !email.includes('@')) {
-      error = 'Por favor, ingresa un correo válido';
+      error = 'Ingresá un correo válido';
       return;
     }
-    
     loading = true;
     error = '';
-    
+    fallback = null;
+
     try {
-      const response = await fetch('/api/solicitar', {
+      const res = await fetch('/api/solicitar', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          paquete: paqueteNombre
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, paquete: paqueteNombre, mensaje }),
       });
-      
-      const data = await response.json();
-      
+      const data = await res.json().catch(() => ({}));
+
       if (data.ok) {
         success = true;
-        setTimeout(() => {
-          closeModal();
-        }, 2000);
       } else {
-        error = data.error || 'Error al enviar la solicitud';
+        error = data.error || 'No se pudo enviar la solicitud.';
+        if (data.fallback?.mailto) fallback = data.fallback;
       }
-    } catch (e) {
-      error = 'Error de conexión. Intenta nuevamente.';
+    } catch {
+      error = 'Sin conexión. Probá de nuevo o escribinos directamente.';
+      fallback = {
+        mailto: 'info@slpixel.com',
+        subject: `Solicitud de fotos en alta resolución — ${paqueteNombre}`,
+        body: `Paquete: ${paqueteNombre}\nCliente: ${email}\n\n${mensaje}`,
+      };
     } finally {
       loading = false;
     }
   }
-  
+
+  function fallbackHref(f) {
+    const params = new URLSearchParams({ subject: f.subject, body: f.body });
+    return `mailto:${f.mailto}?${params.toString()}`;
+  }
+
   function handleKeydown(e) {
-    if (e.key === 'Escape') {
-      closeModal();
-    }
+    if (e.key === 'Escape') closeModal();
+  }
+
+  onMount(() => () => {
+    // ensure we never leave the body locked if the parent unmounts mid-open
+    document.body.style.overflow = '';
+  });
+
+  $: if (typeof document !== 'undefined') {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
   }
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
 
 {#if isOpen}
-  <div class="modal-backdrop" on:click={closeModal} role="presentation">
-    <div class="modal" on:click|stopPropagation role="dialog" aria-modal="true">
+  <div class="ms-backdrop" on:click={closeModal} role="presentation">
+    <div
+      class="ms-modal"
+      on:click|stopPropagation
+      on:keydown|stopPropagation
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ms-title"
+      tabindex="-1"
+    >
+      <button class="ms-close" on:click={closeModal} aria-label="Cerrar">✕</button>
+
       {#if !success}
-        <button class="close-btn" on:click={closeModal} aria-label="Cerrar">&times;</button>
-        
-        <h2>Solicitar Fotos</h2>
-        <p class="subtitle">Paquete: <strong>{paqueteNombre}</strong></p>
-        
-        <form on:submit|preventDefault={handleSubmit}>
-          <div class="form-group">
-            <label for="email">Tu correo electrónico</label>
+        <span class="ms-eyebrow">§ Solicitud · Alta resolución</span>
+        <h2 id="ms-title" class="ms-title">Pedí las fotos en HD</h2>
+        <p class="ms-sub">
+          Galería: <strong>{paqueteNombre || '—'}</strong>
+        </p>
+        <p class="ms-copy">
+          Te enviamos las fotos en alta resolución a tu correo.
+          Tiempo estimado de respuesta: 24-48 horas.
+        </p>
+
+        <form class="ms-form" on:submit|preventDefault={handleSubmit}>
+          <label class="ms-field">
+            <span class="ms-label">Tu correo electrónico</span>
             <input
-              id="email"
               type="email"
               bind:value={email}
-              placeholder="tu@email.com"
+              placeholder="vos@ejemplo.com"
+              autocomplete="email"
               required
               disabled={loading}
             />
-          </div>
-          
+          </label>
+
+          <label class="ms-field">
+            <span class="ms-label">Mensaje (opcional)</span>
+            <textarea
+              bind:value={mensaje}
+              rows="3"
+              placeholder="¿Buscás alguna foto en particular? ¿Para qué la vas a usar?"
+              disabled={loading}
+            ></textarea>
+          </label>
+
           {#if error}
-            <p class="error">{error}</p>
+            <div class="ms-error">
+              <p>{error}</p>
+              {#if fallback}
+                <a class="ms-fallback" href={fallbackHref(fallback)}>
+                  Escribir directamente a {fallback.mailto} →
+                </a>
+              {/if}
+            </div>
           {/if}
-          
-          <button type="submit" disabled={loading}>
-            {loading ? 'Enviando...' : 'Enviar Solicitud'}
+
+          <button type="submit" class="btn ms-submit" disabled={loading}>
+            {loading ? 'Enviando…' : 'Enviar solicitud'}
           </button>
         </form>
       {:else}
-        <div class="success-message">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
-          </svg>
-          <h3>¡Solicitud Enviada!</h3>
-          <p>Nos pondremos en contacto contigo pronto.</p>
+        <div class="ms-success">
+          <span class="ms-eyebrow">Listo</span>
+          <h3 class="ms-title">Solicitud enviada</h3>
+          <p class="ms-copy">
+            Te respondemos a <strong>{email}</strong> en las próximas 24-48 horas
+            con las fotos en alta resolución.
+          </p>
+          <button class="btn btn-ghost" on:click={closeModal}>Cerrar</button>
         </div>
       {/if}
     </div>
@@ -107,117 +163,168 @@
 {/if}
 
 <style>
-  .modal-backdrop {
+  .ms-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
+    background: color-mix(in srgb, #0d0d0b 78%, transparent);
+    backdrop-filter: blur(8px) saturate(1.05);
+    -webkit-backdrop-filter: blur(8px) saturate(1.05);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
-    padding: 1rem;
-    animation: fadeIn 0.3s ease;
+    z-index: 1100;
+    padding: clamp(0.75rem, 3vw, 1.75rem);
+    animation: ms-fade 0.3s ease;
   }
-  
-  .modal {
-    background: var(--bg);
-    padding: 3rem;
-    max-width: 500px;
-    width: 100%;
+
+  .ms-modal {
     position: relative;
-    animation: fadeInScale 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    max-width: 520px;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    background: var(--paper);
+    color: var(--ink);
+    padding: clamp(1.75rem, 4vw, 2.75rem);
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 40px 80px -20px rgba(13, 13, 11, 0.5);
+    animation: ms-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  
-  .close-btn {
+
+  .ms-close {
     position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
+    top: 0.85rem;
+    right: 0.95rem;
     background: transparent;
-    border: none;
-    font-size: 2rem;
+    border: 1px solid transparent;
+    color: var(--ink);
+    font-size: 1.05rem;
     line-height: 1;
+    width: 36px;
+    height: 36px;
     cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--accent);
-    transition: color 0.3s ease;
+    transition: border-color 0.25s ease, opacity 0.25s ease;
   }
-  
-  .close-btn:hover {
-    color: var(--fg);
-    transform: none;
-  }
-  
-  h2 {
-    margin-bottom: 0.5rem;
-    font-size: 2rem;
-  }
-  
-  .subtitle {
-    margin-bottom: 2rem;
-    color: var(--accent);
-  }
-  
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-  
-  label {
+  .ms-close:hover { border-color: var(--line-strong); opacity: 0.7; }
+
+  .ms-eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .ms-title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 0.7rem;
+  }
+
+  .ms-sub {
+    font-family: var(--font-sans);
     font-size: 0.9rem;
-    font-weight: 400;
-    letter-spacing: 0.02em;
-  }
-  
-  button[type="submit"] {
-    width: 100%;
-    margin-top: 1rem;
-  }
-  
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .error {
-    color: #e74c3c;
-    font-size: 0.9rem;
+    color: var(--muted);
     margin-bottom: 1rem;
   }
-  
-  .success-message {
-    text-align: center;
-    padding: 2rem 0;
+  .ms-sub strong { color: var(--ink); font-weight: 500; }
+
+  .ms-copy {
+    font-family: var(--font-sans);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--ink);
+    margin-bottom: 1.6rem;
+    max-width: 42ch;
   }
-  
-  .success-message svg {
-    color: #27ae60;
-    margin-bottom: 1.5rem;
+
+  .ms-form { display: flex; flex-direction: column; gap: 1.1rem; }
+
+  .ms-field { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .ms-label {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
-  
-  .success-message h3 {
-    font-size: 1.8rem;
-    margin-bottom: 0.5rem;
+
+  .ms-form input,
+  .ms-form textarea {
+    font-family: var(--font-sans);
+    font-size: 0.98rem;
+    color: var(--ink);
+    background: var(--paper-alt);
+    border: 1px solid var(--line);
+    padding: 0.85rem 0.95rem;
+    transition: border-color 0.2s ease, background 0.2s ease;
   }
-  
-  .success-message p {
+
+  .ms-form input:focus,
+  .ms-form textarea:focus {
+    outline: none;
+    border-color: var(--ink);
+    background: #fff;
+  }
+
+  .ms-form textarea { resize: vertical; min-height: 80px; }
+
+  .ms-error {
+    background: color-mix(in srgb, var(--accent) 8%, var(--paper));
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+    padding: 0.85rem 1rem;
+    color: var(--ink);
+  }
+  .ms-error p { font-size: 0.88rem; margin-bottom: 0.4rem; }
+
+  .ms-fallback {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
     color: var(--accent);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
   }
-  
-  @media (max-width: 768px) {
-    .modal {
-      padding: 2rem;
-    }
-    
-    h2 {
-      font-size: 1.5rem;
-    }
+  .ms-fallback:hover { opacity: 0.75; }
+
+  .ms-submit {
+    width: 100%;
+    margin-top: 0.4rem;
+    justify-content: center;
+  }
+  .ms-submit:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .ms-success { text-align: left; }
+  .ms-success .btn { margin-top: 1.25rem; }
+
+  @keyframes ms-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes ms-rise {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ms-backdrop, .ms-modal { animation: none; }
   }
 </style>
-

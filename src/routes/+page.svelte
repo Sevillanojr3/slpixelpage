@@ -10,9 +10,26 @@
 
   const bySlug = (slug) => all.find((g) => g.slug === slug);
 
-  // Hero: hand-picked portrait from Cumpleaños Meris #50 (photo 051)
-  const heroGallery = bySlug('cumpleanosmeris50') || all[0];
-  const heroPhoto = heroGallery.photos[51] || heroGallery.photos[0];
+  // Hero carousel — hand-picked moments across galleries.
+  // Lead with Cumpleaños Meris #50 (photo 051) per the user's pick.
+  // Each entry is { slug, index }. Missing entries fall back to photos[0].
+  const heroPicks = [
+    { slug: 'cumpleanosmeris50',           index: 51 },
+    { slug: 'babyshowermaldonadocastaneda', index: 4  },
+    { slug: 'tridenttrustpanamaparty',     index: 12 },
+    { slug: 'cdplazaamadorvsrealespana',   index: 8  },
+    { slug: 'cumpleanospancho73',          index: 6  },
+    { slug: 'panamvsrepblicadominicanau17', index: 5  },
+  ];
+
+  const heroSlides = heroPicks
+    .map(({ slug, index }) => {
+      const g = bySlug(slug);
+      if (!g) return null;
+      const photo = g.photos[index] || g.photos[0];
+      return photo ? { photo, slug: g.slug, title: g.title } : null;
+    })
+    .filter(Boolean);
 
   // About: pick an atmospheric photo from a different gallery
   const aboutGallery = bySlug('cumpleanospancho73') || bySlug('tridenttrustpanamaparty') || all[1] || all[0];
@@ -31,7 +48,27 @@
   const marqueeTitles = all.map((g) => g.title);
 
   let mounted = false;
-  onMount(() => (mounted = true));
+  let activeHero = 0;
+  let heroPaused = false;
+
+  onMount(() => {
+    mounted = true;
+
+    if (heroSlides.length < 2) return;
+
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
+
+    const SLIDE_MS = 6000;
+    const id = setInterval(() => {
+      if (heroPaused || document.hidden) return;
+      activeHero = (activeHero + 1) % heroSlides.length;
+    }, SLIDE_MS);
+
+    return () => clearInterval(id);
+  });
 
   function formatDate(iso) {
     if (!iso) return '';
@@ -45,16 +82,44 @@
 </svelte:head>
 
 <!-- =============== HERO =============== -->
-<section class="hero" class:mounted>
+<section
+  class="hero"
+  class:mounted
+  on:mouseenter={() => (heroPaused = true)}
+  on:mouseleave={() => (heroPaused = false)}
+  aria-label="Galería principal de SL Pixel"
+>
   <div class="hero-image">
-    <img src={fullUrl(heroPhoto, heroGallery.slug)} alt="" loading="eager" fetchpriority="high" />
+    {#each heroSlides as slide, i (slide.slug + i)}
+      <img
+        src={fullUrl(slide.photo, slide.slug)}
+        alt=""
+        class:active={i === activeHero}
+        loading={i === 0 ? 'eager' : 'lazy'}
+        fetchpriority={i === 0 ? 'high' : 'auto'}
+        decoding="async"
+      />
+    {/each}
     <div class="hero-scrim"></div>
   </div>
+
+  {#if heroSlides.length > 1}
+    <div class="hero-dots" aria-hidden="true">
+      {#each heroSlides as _, i}
+        <button
+          type="button"
+          class="hero-dot"
+          class:on={i === activeHero}
+          on:click={() => (activeHero = i)}
+          aria-label={`Mostrar imagen ${i + 1}`}
+        ></button>
+      {/each}
+    </div>
+  {/if}
 
   <div class="hero-frame">
     <div class="hero-top">
       <span class="label label-paper">SL Pixel Studio · Panamá</span>
-      <span class="label label-paper numeral-ws">N° 001 / MMXXVI</span>
     </div>
 
     <div class="hero-center">
@@ -227,7 +292,7 @@
         Reservamos un número limitado de encargos al mes para garantizar la calidad
         que entregamos. Escribe a nuestro correo y respondemos en 24 horas.
       </p>
-      <a href="mailto:slpixelstudio@gmail.com" class="btn btn-paper">Escribir al estudio</a>
+      <a href="mailto:info@slpixel.com" class="btn btn-paper">Escribir al estudio</a>
     </div>
   </div>
 </section>
@@ -244,17 +309,12 @@
         Estudio SL&nbsp;Pixel · Ciudad de Panamá. Atención por correo y redes
         sociales.
       </p>
-      <a href="mailto:slpixelstudio@gmail.com" class="email-big">slpixelstudio@gmail.com</a>
+      <a href="mailto:info@slpixel.com" class="email-big">info@slpixel.com</a>
       <div class="contact-meta">
-        <div>
-          <span class="label">Horario</span>
-          <p>Lun–Vie · 9:00 – 18:00</p>
-        </div>
         <div>
           <span class="label">Redes</span>
           <p>
-            <a href="https://instagram.com/slpixel">Instagram</a> ·
-            <a href="https://facebook.com/slpixel">Facebook</a>
+            <a href="https://www.instagram.com/slpixel/" target="_blank" rel="noopener noreferrer">@slpixel ↗</a>
           </p>
         </div>
       </div>
@@ -277,27 +337,76 @@
     position: absolute;
     inset: 0;
     overflow: hidden;
+    background: var(--ink);
   }
 
   .hero-image img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center 30%;
-    transform: scale(1.06);
     filter: saturate(1.05) contrast(1.02);
+    /* sharper bicubic-ish resampling on upscales (browser-dependent) */
+    image-rendering: -webkit-optimize-contrast;
+    opacity: 0;
+    transform: scale(1.04);
+    transition: opacity 1.4s ease;
+    will-change: opacity, transform;
   }
 
-  .hero.mounted .hero-image img {
-    animation: slowZoom 14s ease-out forwards;
+  .hero-image img.active {
+    opacity: 1;
+    /* Ken Burns: gentle drift while this slide is on screen.
+       Limited zoom range to minimise visible upscale on big monitors. */
+    animation: heroKenBurns 9s ease-out forwards;
+  }
+
+  @keyframes heroKenBurns {
+    from { transform: scale(1.05); }
+    to   { transform: scale(1.0); }
   }
 
   .hero-scrim {
     position: absolute;
     inset: 0;
+    z-index: 1;
     background:
       linear-gradient(180deg, rgba(13,13,11,0.55) 0%, rgba(13,13,11,0.15) 38%, rgba(13,13,11,0.85) 100%),
       radial-gradient(80% 50% at 50% 30%, transparent 0%, rgba(13,13,11,0.35) 100%);
+    pointer-events: none;
+  }
+
+  .hero-dots {
+    position: absolute;
+    bottom: clamp(0.9rem, 1.4vw, 1.4rem);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    gap: 0.55rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .hero-dot {
+    width: 26px;
+    height: 2px;
+    background: color-mix(in srgb, var(--paper) 35%, transparent);
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.4s ease, width 0.4s ease;
+  }
+
+  .hero-dot.on {
+    background: var(--paper);
+    width: 44px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-image img.active { animation: none; transform: none; }
+    .hero-image img { transition: none; }
   }
 
   .hero-frame {

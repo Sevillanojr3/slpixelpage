@@ -14,13 +14,23 @@ export const BEST_SIZE = 'xxlarge';
 // xlarge — that's the highest size we actually downloaded for them.
 const COVER_MAX_SIZE = 'xlarge';
 
-/** @param {{bucket:string,hash:string,ext:string,size?:string}} p */
+/** @param {{bucket?:string,hash?:string,ext?:string,size?:string,key?:string}} p */
 export function photoUrl(p, size, slug) {
+  // Admin-uploaded photos store a direct R2 key (e.g. "slug/abc-file.jpg").
+  if (p?.key) {
+    if (BASE) return `${BASE}/${p.key}`;
+    return `/${p.key}`;
+  }
   const ext = (p.ext || 'jpg').toLowerCase();
   const effective = p?.size === 'cover' && size === 'xxlarge' ? COVER_MAX_SIZE : size;
   const filename = `${p.hash}-${effective}.${ext}`;
   if (BASE) return `${BASE}/${slug}/${filename}`;
   return `/galeria/${slug}/${filename}`;
+}
+
+/** Stable identity for keying #each blocks across both photo formats. */
+export function photoKey(p) {
+  return p?.key || (p?.hash ? `${p.bucket || ''}/${p.hash}` : JSON.stringify(p));
 }
 
 // Both helpers now resolve to the highest-quality variant available.

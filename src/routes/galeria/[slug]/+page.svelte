@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { thumbUrl, fullUrl } from '$lib/images.js';
+  import { thumbUrl, fullUrl, photoKey } from '$lib/images.js';
 
   export let data;
   const { gallery } = data;
@@ -80,7 +80,7 @@
 <section class="g-grid-section">
   <div class="container wide">
     <div class="g-grid">
-      {#each gallery.photos as photo, i (photo.hash)}
+      {#each gallery.photos as photo, i (photoKey(photo))}
         <button
           type="button"
           class="tile"

@@ -24,10 +24,34 @@ const galleries = files
   .filter((g) => (g.photos || []).length > 0)
   .sort((a, b) => (a.date && b.date ? b.date.localeCompare(a.date) : 0));
 
-fs.writeFileSync(
-  DST,
-  JSON.stringify({ base: 'https://slpixel.pixieset.com', galleries }, null, 2),
-);
+// Preserve admin-managed fields (categories, custom photo entries) from the
+// existing manifest. The scraper only knows about Pixieset photos, so we keep
+// any photos with `key` (admin uploads) and merge them back in.
+let existing = { base: 'https://slpixel.pixieset.com', galleries: [], categories: undefined };
+if (fs.existsSync(DST)) {
+  try { existing = JSON.parse(fs.readFileSync(DST, 'utf8')); } catch {}
+}
+
+const existingBySlug = Object.fromEntries((existing.galleries || []).map((g) => [g.slug, g]));
+
+const merged = galleries.map((g) => {
+  const prev = existingBySlug[g.slug];
+  if (!prev) return g;
+  const adminPhotos = (prev.photos || []).filter((p) => p.key);
+  // Prefer existing admin-managed metadata when present (so editing in /admin sticks).
+  return {
+    ...g,
+    title: prev.title || g.title,
+    date: prev.date || g.date,
+    category: prev.category || g.category,
+    photos: [...(g.photos || []), ...adminPhotos],
+  };
+});
+
+const out = { base: 'https://slpixel.pixieset.com', galleries: merged };
+if (existing.categories) out.categories = existing.categories;
+
+fs.writeFileSync(DST, JSON.stringify(out, null, 2));
 
 const total = galleries.reduce((acc, g) => acc + g.photos.length, 0);
 console.log(`Wrote ${galleries.length} galleries (${total} photos) to ${DST}`);

@@ -17,6 +17,8 @@
 		"galeria:sync": "npm run galeria:manifest && npm run galeria:download"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.1037.0",
+		"@aws-sdk/s3-request-presigner": "^3.1037.0",
 		"dotenv": "^17.4.2",
 		"nodemailer": "^6.9.7"
 	},

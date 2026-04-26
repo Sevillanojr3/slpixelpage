@@ -1,6 +1,5 @@
 <script>
   import { onMount } from 'svelte';
-  import ModalSolicitar from '$lib/components/ModalSolicitar.svelte';
   import { thumbUrl, fullUrl } from '$lib/images.js';
 
   export let data;
@@ -10,7 +9,6 @@
   const title = cleanTitle(gallery.title);
 
   let lightboxIdx = -1;
-  let modalOpen = false;
 
   function openLightbox(i) {
     lightboxIdx = i;
@@ -74,7 +72,6 @@
           <p>{gallery.photos.length} piezas · resolución editorial</p>
         </div>
       </div>
-      <button class="btn btn-ghost" on:click={() => (modalOpen = true)}>Solicitar alta resolución</button>
     </div>
   </div>
 </section>
@@ -139,8 +136,6 @@
     {/if}
   </div>
 {/if}
-
-<ModalSolicitar bind:isOpen={modalOpen} paqueteNombre={title} />
 
 <style>
   /* ============ HEADER ============ */

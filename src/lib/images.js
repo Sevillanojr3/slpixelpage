@@ -6,8 +6,8 @@ import { env } from '$env/dynamic/public';
 const BASE = (env.PUBLIC_IMAGES_BASE_URL || '').replace(/\/$/, '');
 
 // Single source of truth for the best variant currently published to the
-// bucket. Bump to 'xxlarge' once those originals are synced.
-export const BEST_SIZE = 'xlarge';
+// bucket. xxlarge originals were synced 2026-04-26.
+export const BEST_SIZE = 'xxlarge';
 
 // Pixieset cover-type entries don't have an xxlarge variant in the bucket
 // (Pixieset returns 404 when scraping that size for covers). Cap them at

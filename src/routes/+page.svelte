@@ -23,9 +23,7 @@
     'dsc6887.jpg',
     'dsc7276.jpg',
     'dsc7533.jpg',
-    'img-2864.jpg',
     'julieta-07.jpg',
-    'pancho73-025.jpg',
     'seleccion-01.jpg',
     'ttptycp-57.jpg',
   ];
@@ -314,6 +312,12 @@
       </p>
       <a href="mailto:info@slpixel.com" class="email-big">info@slpixel.com</a>
       <div class="contact-meta">
+        <div>
+          <span class="label">Teléfono</span>
+          <p>
+            <a href="tel:+50764660639">+507 6466-0639</a>
+          </p>
+        </div>
         <div>
           <span class="label">Redes</span>
           <p>

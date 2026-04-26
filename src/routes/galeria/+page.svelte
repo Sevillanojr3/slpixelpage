@@ -40,7 +40,6 @@
   <div class="container">
     <div class="g-top">
       <span class="label">Index · Portafolios</span>
-      <span class="numeral">{String(cleaned.length).padStart(3, '0')} / MMXXVI</span>
     </div>
 
     <h1 class="g-title">

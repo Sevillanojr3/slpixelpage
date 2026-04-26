@@ -13,8 +13,6 @@
         name="code"
         inputmode="numeric"
         autocomplete="one-time-code"
-        pattern="\d{6}"
-        maxlength="6"
         required
         autofocus
         placeholder="000000"

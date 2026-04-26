@@ -4,7 +4,8 @@ import { verifyCode, createSession, setSessionCookie, adminEmail } from '$lib/se
 export const actions = {
   default: async ({ request, cookies }) => {
     const form = await request.formData();
-    const code = (form.get('code') || '').toString().trim();
+    // Strip non-digits so spaces/hyphens from email clients don't break the match.
+    const code = (form.get('code') || '').toString().replace(/\D/g, '');
     if (!/^\d{6}$/.test(code)) {
       return fail(400, { error: 'Ingresá el código de 6 dígitos.' });
     }

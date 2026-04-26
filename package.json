@@ -17,6 +17,7 @@
 		"galeria:sync": "npm run galeria:manifest && npm run galeria:download"
 	},
 	"dependencies": {
+		"dotenv": "^17.4.2",
 		"nodemailer": "^6.9.7"
 	},
 	"devDependencies": {

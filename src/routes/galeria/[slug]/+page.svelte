@@ -55,7 +55,7 @@
     </a>
 
     <div class="head-meta">
-      <span class="label">§ Portafolio · {gallery.category || 'archivo'}</span>
+      <span class="label">Portafolio · {gallery.category || 'archivo'}</span>
       <span class="numeral">{String(gallery.photos.length).padStart(3, '0')} fotografías</span>
     </div>
 

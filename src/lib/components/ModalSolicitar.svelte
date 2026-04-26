@@ -99,7 +99,7 @@
       <button class="ms-close" on:click={closeModal} aria-label="Cerrar">✕</button>
 
       {#if !success}
-        <span class="ms-eyebrow">§ Solicitud · Alta resolución</span>
+        <span class="ms-eyebrow">Solicitud · Alta resolución</span>
         <h2 id="ms-title" class="ms-title">Pedí las fotos en HD</h2>
         <p class="ms-sub">
           Galería: <strong>{paqueteNombre || '—'}</strong>

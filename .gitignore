@@ -13,6 +13,11 @@ node_modules
 /static/galeria/*/*.png
 /static/galeria/*/*.webp
 !/static/galeria/.gitkeep
+/static/carrusel/*.jpg
+/static/carrusel/*.jpeg
+/static/carrusel/*.png
+/static/carrusel/*.webp
+!/static/carrusel/.gitkeep
 
 # Logs
 logs

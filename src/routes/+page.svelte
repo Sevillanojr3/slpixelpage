@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import galleries from '$lib/data/galleries.json';
   import { thumbUrl, fullUrl } from '$lib/images.js';
+  import { env as publicEnv } from '$env/dynamic/public';
 
   const cleanTitle = (t) => (t || '').replace(/\s+de SLPixel$/i, '').trim();
   const all = (galleries.galleries || [])
@@ -10,26 +11,28 @@
 
   const bySlug = (slug) => all.find((g) => g.slug === slug);
 
-  // Hero carousel — hand-picked moments across galleries.
-  // Lead with Cumpleaños Meris #50 (photo 051) per the user's pick.
-  // Each entry is { slug, index }. Missing entries fall back to photos[0].
-  const heroPicks = [
-    { slug: 'cumpleanosmeris50',           index: 51 },
-    { slug: 'babyshowermaldonadocastaneda', index: 4  },
-    { slug: 'tridenttrustpanamaparty',     index: 12 },
-    { slug: 'cdplazaamadorvsrealespana',   index: 8  },
-    { slug: 'cumpleanospancho73',          index: 6  },
-    { slug: 'panamvsrepblicadominicanau17', index: 5  },
+  // Hero carousel — curated photos served from R2 (carrusel/ prefix).
+  // To add/remove slides, drop files in static/carrusel/ and re-upload, then
+  // edit this list. Filenames must match the keys uploaded to the bucket.
+  const CARRUSEL_BASE = (publicEnv.PUBLIC_IMAGES_BASE_URL || '').replace(/\/$/, '');
+  const carruselFiles = [
+    'bagoso-aniversario-041.jpg',
+    'cuki-y-juli-09.jpg',
+    'dsc07335.jpg',
+    'dsc09143.jpg',
+    'dsc6887.jpg',
+    'dsc7276.jpg',
+    'dsc7533.jpg',
+    'img-2864.jpg',
+    'julieta-07.jpg',
+    'pancho73-025.jpg',
+    'seleccion-01.jpg',
+    'ttptycp-57.jpg',
   ];
-
-  const heroSlides = heroPicks
-    .map(({ slug, index }) => {
-      const g = bySlug(slug);
-      if (!g) return null;
-      const photo = g.photos[index] || g.photos[0];
-      return photo ? { photo, slug: g.slug, title: g.title } : null;
-    })
-    .filter(Boolean);
+  const heroSlides = carruselFiles.map((file) => ({
+    src: CARRUSEL_BASE ? `${CARRUSEL_BASE}/carrusel/${file}` : `/carrusel/${file}`,
+    key: file,
+  }));
 
   // About: pick an atmospheric photo from a different gallery
   const aboutGallery = bySlug('cumpleanospancho73') || bySlug('tridenttrustpanamaparty') || all[1] || all[0];
@@ -90,9 +93,9 @@
   aria-label="Galería principal de SL Pixel"
 >
   <div class="hero-image">
-    {#each heroSlides as slide, i (slide.slug + i)}
+    {#each heroSlides as slide, i (slide.key)}
       <img
-        src={fullUrl(slide.photo, slide.slug)}
+        src={slide.src}
         alt=""
         class:active={i === activeHero}
         loading={i === 0 ? 'eager' : 'lazy'}
@@ -156,7 +159,7 @@
 <section class="section about">
   <div class="container about-grid">
     <div class="about-meta">
-      <span class="label">§ 01 · Estudio</span>
+      <span class="label">Estudio</span>
       <hr class="rule-short" />
     </div>
 
@@ -200,7 +203,7 @@
 <section id="servicios" class="section services">
   <div class="container">
     <div class="services-head">
-      <span class="label">§ 02 · Servicios</span>
+      <span class="label">Servicios</span>
       <h2>
         Un lenguaje para
         <span class="italic">cada encargo</span>.
@@ -249,7 +252,7 @@
   <div class="container">
     <div class="featured-head">
       <div>
-        <span class="label">§ 03 · Trabajos seleccionados</span>
+        <span class="label">Trabajos seleccionados</span>
         <h2>Últimos portafolios.</h2>
       </div>
       <a href="/galeria" class="link-arrow desktop-only">Ver todos los portafolios</a>
@@ -281,7 +284,7 @@
 <section class="cta">
   <div class="container cta-grid">
     <div>
-      <span class="label label-paper">§ 04 · Invitación</span>
+      <span class="label label-paper">Invitación</span>
       <h2>
         Cuéntanos tu proyecto.
         <span class="italic">Hagámoslo memorable.</span>
@@ -301,7 +304,7 @@
 <section id="contacto" class="section contact">
   <div class="container contact-grid">
     <div>
-      <span class="label">§ 05 · Contacto</span>
+      <span class="label">Contacto</span>
       <hr class="rule-short" />
     </div>
     <div class="contact-body">

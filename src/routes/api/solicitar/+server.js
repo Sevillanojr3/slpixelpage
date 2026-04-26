@@ -1,6 +1,28 @@
 import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
 import { env } from '$env/dynamic/private';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+// Manual .env loader — workaround for env vars not propagating in this WSL setup.
+let manualEnv = {};
+try {
+  const raw = readFileSync(resolve(process.cwd(), '.env'), 'utf8');
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq < 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let val = trimmed.slice(eq + 1).trim();
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
+    manualEnv[key] = val;
+  }
+} catch (e) {
+  console.error('[/api/solicitar] could not read .env:', e.message);
+}
 
 const STUDIO_EMAIL = 'info@slpixel.com';
 
@@ -26,10 +48,19 @@ export async function POST({ request }) {
     return json({ ok: false, error: 'Email inválido' }, { status: 400 });
   }
 
-  const host = env.EMAIL_HOST || 'smtp.gmail.com';
-  const port = parseInt(env.EMAIL_PORT || '587', 10);
-  const user = env.EMAIL_USER;
-  const pass = env.EMAIL_PASS;
+  const host = manualEnv.EMAIL_HOST || env.EMAIL_HOST || process.env.EMAIL_HOST || 'smtp.hostinger.com';
+  const port = parseInt(manualEnv.EMAIL_PORT || env.EMAIL_PORT || process.env.EMAIL_PORT || '465', 10);
+  const user = manualEnv.EMAIL_USER || env.EMAIL_USER || process.env.EMAIL_USER;
+  const pass = manualEnv.EMAIL_PASS || env.EMAIL_PASS || process.env.EMAIL_PASS;
+
+  console.log('[/api/solicitar] env check:', {
+    host,
+    port,
+    user: user || '(vacío)',
+    passLength: pass ? pass.length : 0,
+    manualEnvUser: manualEnv.EMAIL_USER || '(vacío)',
+    manualEnvPassLen: manualEnv.EMAIL_PASS ? manualEnv.EMAIL_PASS.length : 0,
+  });
 
   // SMTP not configured — return a structured fallback so the UI can
   // offer a mailto link instead of silently failing.

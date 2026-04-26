@@ -7,7 +7,7 @@
 
   $: ({ gallery, categories, publicBase } = data);
 
-  let files = [];
+  let files = null;
   let uploadStatus = '';
   let uploading = false;
 
@@ -77,7 +77,7 @@
 
     uploading = false;
     uploadStatus = `✓ ${done} foto${done === 1 ? '' : 's'} subida${done === 1 ? '' : 's'}`;
-    files = [];
+    files = null;
     await invalidateAll();
   }
 </script>

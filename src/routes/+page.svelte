@@ -1,11 +1,12 @@
 <script>
   import { onMount } from 'svelte';
-  import galleries from '$lib/data/galleries.json';
   import { thumbUrl, fullUrl } from '$lib/images.js';
   import { env as publicEnv } from '$env/dynamic/public';
 
+  export let data;
+
   const cleanTitle = (t) => (t || '').replace(/\s+de SLPixel$/i, '').trim();
-  const all = (galleries.galleries || [])
+  const all = (data.galleries || [])
     .filter((g) => (g.photos || []).length > 0)
     .map((g) => ({ ...g, title: cleanTitle(g.title) }));
 

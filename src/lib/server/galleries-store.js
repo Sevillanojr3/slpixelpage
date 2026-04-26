@@ -23,13 +23,21 @@ function normalize(raw) {
   };
 }
 
+const CACHE_TTL_MS = 30 * 1000;
+let cache = { data: null, exp: 0 };
+
 export async function read() {
+  if (cache.data && Date.now() < cache.exp) return cache.data;
   const raw = await getJson(KEY);
-  return normalize(raw);
+  const data = normalize(raw);
+  cache = { data, exp: Date.now() + CACHE_TTL_MS };
+  return data;
 }
 
 export async function write(data) {
-  await putJson(KEY, normalize(data));
+  const normalized = normalize(data);
+  await putJson(KEY, normalized);
+  cache = { data: normalized, exp: Date.now() + CACHE_TTL_MS };
 }
 
 export async function listCategories() {

@@ -1,15 +1,14 @@
 <script>
   import Header from '$lib/components/Header.svelte';
   import Footer from '$lib/components/Footer.svelte';
-  import { logoUrl, logos } from '$lib/logos.js';
+  import { brand } from '$lib/logos.js';
   import '$lib/styles/global.css';
-
-  const favicon = logoUrl(logos.isoBlue);
 </script>
 
 <svelte:head>
-  <link rel="icon" type="image/png" href={favicon} />
-  <link rel="apple-touch-icon" href={favicon} />
+  <link rel="icon" type="image/png" href={brand.favicon} />
+  <link rel="apple-touch-icon" href={brand.favicon} />
+  <meta name="theme-color" content="#0b0a08" />
 </svelte:head>
 
 <div class="app">
@@ -25,16 +24,17 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    background: var(--paper);
   }
 
   main {
     flex: 1;
-    margin-top: 76px;
+    margin-top: 148px;
   }
 
   @media (max-width: 860px) {
     main {
-      margin-top: 58px;
+      margin-top: 100px;
     }
   }
 </style>

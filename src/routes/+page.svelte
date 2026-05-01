@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { thumbUrl, fullUrl } from '$lib/images.js';
   import { env as publicEnv } from '$env/dynamic/public';
+  import { brand } from '$lib/logos.js';
 
   export let data;
 
@@ -13,8 +14,6 @@
   const bySlug = (slug) => all.find((g) => g.slug === slug);
 
   // Hero carousel — curated photos served from R2 (carrusel/ prefix).
-  // To add/remove slides, drop files in static/carrusel/ and re-upload, then
-  // edit this list. Filenames must match the keys uploaded to the bucket.
   const CARRUSEL_BASE = (publicEnv.PUBLIC_IMAGES_BASE_URL || '').replace(/\/$/, '');
   const carruselFiles = [
     'bagoso-aniversario-041.jpg',
@@ -71,16 +70,11 @@
 
     return () => clearInterval(id);
   });
-
-  function formatDate(iso) {
-    if (!iso) return '';
-    return new Date(iso).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-  }
 </script>
 
 <svelte:head>
-  <title>SL Pixel — Estudio de Fotografía Editorial</title>
-  <meta name="description" content="SL Pixel — Estudio de fotografía y producción visual en Panamá. Eventos, deportes y sesiones corporativas." />
+  <title>SLPixel — Estudio de Fotografía Editorial</title>
+  <meta name="description" content="SLPixel — Estudio de fotografía y producción visual en Panamá. Bodas, eventos, deportes y sesiones corporativas." />
 </svelte:head>
 
 <!-- =============== HERO =============== -->
@@ -89,7 +83,7 @@
   class:mounted
   on:mouseenter={() => (heroPaused = true)}
   on:mouseleave={() => (heroPaused = false)}
-  aria-label="Galería principal de SL Pixel"
+  aria-label="Galería principal de SLPixel"
 >
   <div class="hero-image">
     {#each heroSlides as slide, i (slide.key)}
@@ -121,28 +115,41 @@
 
   <div class="hero-frame">
     <div class="hero-top">
-      <span class="label label-paper">SL Pixel Studio · Panamá</span>
+      <span class="label">Fotografía editorial · Bodas · Eventos</span>
+      <span class="numeral">SLPixel · Estudio · Panamá</span>
     </div>
 
     <div class="hero-center">
       <h1 class="hero-title">
-        <span class="ht-line"><em>Momentos</em></span>
-        <span class="ht-line">que <span class="ht-alt">permanecen</span></span>
+        <span class="ht-line">Convirtiendo momentos</span>
+        <span class="ht-line">en recuerdos <em>eternos</em>.</span>
       </h1>
     </div>
 
     <div class="hero-bottom">
       <p class="hero-lede">
-        Fotografía creativa y producción visual. Eventos, retratos, deportes, marcas.
-        Una mirada editorial sobre lo irrepetible.
+        Fotografía documental y artística para crear recuerdos auténticos,
+        belleza y emociones reales.
       </p>
       <div class="hero-actions">
-        <a href="/galeria" class="btn btn-paper">Ver galería</a>
+        <a href="/galeria" class="btn">Ver portafolio</a>
         <a href="#servicios" class="hero-sub">Explorar servicios →</a>
       </div>
     </div>
   </div>
 
+</section>
+
+<!-- =============== STATEMENT BAND =============== -->
+<section class="statement">
+  <div class="container">
+    <span class="label">SLPixel Studio</span>
+    <h2 class="statement-title">
+      Construyendo <em>memorias</em>
+      <br />
+      que resisten el paso del tiempo.
+    </h2>
+  </div>
 </section>
 
 <!-- =============== MARQUEE BAND =============== -->
@@ -155,10 +162,10 @@
 </section>
 
 <!-- =============== ABOUT / INTRO =============== -->
-<section class="section about">
+<section id="sobre-mi" class="section about">
   <div class="container about-grid">
     <div class="about-meta">
-      <span class="label">Estudio</span>
+      <span class="label">Sobre mí</span>
       <hr class="rule-short" />
     </div>
 
@@ -171,9 +178,9 @@
 
       <div class="about-copy prose">
         <p>
-          SL Pixel es un estudio independiente dedicado a la fotografía de
-          eventos, producción audiovisual y dirección creativa con base en
-          Ciudad de Panamá.
+          SLPixel es un estudio independiente dedicado a la fotografía de
+          bodas, eventos, producción audiovisual y dirección creativa con base
+          en Ciudad de Panamá.
         </p>
         <p>
           Trabajamos con la disciplina del editorial y la sensibilidad del
@@ -213,7 +220,7 @@
       <li class="service">
         <span class="numeral num">01</span>
         <div>
-          <h3>Fotografía de eventos</h3>
+          <h3>Bodas y celebraciones</h3>
           <p>
             Bodas, quinceañeras, cumpleaños y celebraciones privadas. Cobertura de principio a fin,
             con entrega editorial y una selección curada del momento clave.
@@ -283,7 +290,7 @@
 <section class="cta">
   <div class="container cta-grid">
     <div>
-      <span class="label label-paper">Invitación</span>
+      <span class="label">Invitación</span>
       <h2>
         Cuéntanos tu proyecto.
         <span class="italic">Hagámoslo memorable.</span>
@@ -294,7 +301,7 @@
         Reservamos un número limitado de encargos al mes para garantizar la calidad
         que entregamos. Escribe a nuestro correo y respondemos en 24 horas.
       </p>
-      <a href="mailto:info@slpixel.com" class="btn btn-paper">Escribir al estudio</a>
+      <a href="mailto:info@slpixel.com" class="btn">Escribir al estudio</a>
     </div>
   </div>
 </section>
@@ -308,7 +315,7 @@
     </div>
     <div class="contact-body">
       <p class="contact-lede">
-        Estudio SL&nbsp;Pixel · Ciudad de Panamá. Atención por correo y redes
+        Estudio SLPixel · Ciudad de Panamá. Atención por correo y redes
         sociales.
       </p>
       <a href="mailto:info@slpixel.com" class="email-big">info@slpixel.com</a>
@@ -337,15 +344,15 @@
     height: min(100vh, 960px);
     min-height: 640px;
     overflow: hidden;
-    color: var(--paper);
-    background: var(--ink);
+    color: var(--ink);
+    background: var(--paper);
   }
 
   .hero-image {
     position: absolute;
     inset: 0;
     overflow: hidden;
-    background: var(--ink);
+    background: var(--paper);
   }
 
   .hero-image img {
@@ -355,8 +362,7 @@
     height: 100%;
     object-fit: cover;
     object-position: center 30%;
-    filter: saturate(1.05) contrast(1.02);
-    /* sharper bicubic-ish resampling on upscales (browser-dependent) */
+    filter: saturate(1.05) contrast(1.05);
     image-rendering: -webkit-optimize-contrast;
     opacity: 0;
     transform: scale(1.04);
@@ -366,8 +372,6 @@
 
   .hero-image img.active {
     opacity: 1;
-    /* Ken Burns: gentle drift while this slide is on screen.
-       Limited zoom range to minimise visible upscale on big monitors. */
     animation: heroKenBurns 9s ease-out forwards;
   }
 
@@ -381,8 +385,8 @@
     inset: 0;
     z-index: 1;
     background:
-      linear-gradient(180deg, rgba(13,13,11,0.55) 0%, rgba(13,13,11,0.15) 38%, rgba(13,13,11,0.85) 100%),
-      radial-gradient(80% 50% at 50% 30%, transparent 0%, rgba(13,13,11,0.35) 100%);
+      linear-gradient(180deg, rgba(11,10,8,0.65) 0%, rgba(11,10,8,0.18) 38%, rgba(11,10,8,0.92) 100%),
+      linear-gradient(90deg, rgba(11,10,8,0.55) 0%, rgba(11,10,8,0) 60%);
     pointer-events: none;
   }
 
@@ -400,7 +404,7 @@
   .hero-dot {
     width: 26px;
     height: 2px;
-    background: color-mix(in srgb, var(--paper) 35%, transparent);
+    background: color-mix(in srgb, var(--ink) 30%, transparent);
     border: 0;
     padding: 0;
     cursor: pointer;
@@ -408,7 +412,7 @@
   }
 
   .hero-dot.on {
-    background: var(--paper);
+    background: var(--accent);
     width: 44px;
   }
 
@@ -423,7 +427,9 @@
     z-index: 2;
     display: grid;
     grid-template-rows: auto 1fr auto;
-    padding: clamp(1.25rem, 3vw, 2.25rem) var(--page-gutter) clamp(1.75rem, 3vw, 2.5rem);
+    padding: clamp(1.5rem, 3vw, 2.5rem) var(--page-gutter) clamp(2rem, 3.5vw, 3rem);
+    max-width: var(--page-max);
+    margin: 0 auto;
   }
 
   .hero-top, .hero-bottom {
@@ -439,20 +445,22 @@
     animation: fadeIn 0.8s ease 0.15s forwards;
   }
 
-  .numeral-ws { font-family: var(--font-mono); letter-spacing: 0.2em; font-size: 0.68rem; }
+  .hero-top .label { color: var(--accent); }
+  .hero-top .numeral { color: color-mix(in srgb, var(--ink) 65%, transparent); }
 
   .hero-center {
     align-self: end;
-    padding-bottom: 2vh;
+    padding-bottom: 3vh;
+    max-width: 24ch;
   }
 
   .hero-title {
     font-family: var(--font-display);
     font-weight: 300;
-    font-size: clamp(3.4rem, 10.5vw, 10rem);
-    line-height: 0.92;
-    color: var(--paper);
-    letter-spacing: -0.03em;
+    font-size: clamp(2.6rem, 7.5vw, 6.8rem);
+    line-height: 1.0;
+    color: var(--ink);
+    letter-spacing: -0.025em;
     font-variation-settings: 'opsz' 144, 'SOFT' 45, 'WONK' 1;
   }
 
@@ -462,13 +470,9 @@
 
   .hero-title em {
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
-    color: var(--paper);
-  }
-  .ht-alt {
-    font-style: italic;
     font-weight: 300;
-    color: color-mix(in srgb, var(--paper) 82%, transparent);
+    font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
+    color: var(--accent);
   }
 
   .hero-bottom {
@@ -480,8 +484,8 @@
   .hero-lede {
     max-width: 38ch;
     font-size: clamp(0.95rem, 1.2vw, 1.1rem);
-    line-height: 1.55;
-    color: color-mix(in srgb, var(--paper) 88%, transparent);
+    line-height: 1.65;
+    color: color-mix(in srgb, var(--ink) 86%, transparent);
   }
 
   .hero-actions {
@@ -493,15 +497,52 @@
 
   .hero-sub {
     font-family: var(--font-sans);
-    font-size: 0.78rem;
-    letter-spacing: 0.18em;
+    font-size: 0.74rem;
+    letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: var(--paper);
-    border-bottom: 1px solid color-mix(in srgb, var(--paper) 40%, transparent);
+    color: color-mix(in srgb, var(--ink) 75%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
     padding-bottom: 3px;
+    transition: color 0.3s ease, border-color 0.3s ease;
   }
 
-  .hero-sub:hover { border-bottom-color: var(--paper); opacity: 1; }
+  .hero-sub:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    opacity: 1;
+  }
+
+  /* =================== STATEMENT =================== */
+  .statement {
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: clamp(4.5rem, 9vw, 8rem) 0;
+    text-align: center;
+  }
+
+  .statement .label {
+    display: block;
+    margin-bottom: 1.75rem;
+    color: var(--accent);
+  }
+
+  .statement-title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(1.85rem, 4.6vw, 4rem);
+    line-height: 1.18;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    max-width: 22ch;
+    margin: 0 auto;
+  }
+
+  .statement-title em {
+    font-style: italic;
+    color: var(--accent);
+    font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
+  }
 
   /* =================== MARQUEE =================== */
   .marquee {
@@ -557,9 +598,10 @@
   .about-text h2 {
     font-family: var(--font-display);
     font-size: clamp(2.1rem, 5.5vw, 4.75rem);
-    line-height: 1.0;
+    line-height: 1.04;
     letter-spacing: -0.025em;
     margin-bottom: 2rem;
+    color: var(--ink);
   }
 
   .italic {
@@ -569,6 +611,7 @@
   }
 
   .about-copy { max-width: 48ch; margin-bottom: 2rem; }
+  .about-copy p { color: var(--ink-2); }
 
   .about-links {
     display: flex;
@@ -581,6 +624,7 @@
     aspect-ratio: 4 / 5;
     overflow: hidden;
     background: var(--paper-alt);
+    border: 1px solid var(--line);
   }
 
   .about-image img {
@@ -595,15 +639,15 @@
     display: flex;
     justify-content: space-between;
     padding: 1rem 1.25rem;
-    background: linear-gradient(180deg, transparent, rgba(13,13,11,0.72));
-    color: var(--paper);
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.85));
+    color: var(--ink);
     font-family: var(--font-sans);
     font-size: 0.72rem;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
   }
 
-  .caption .numeral { color: color-mix(in srgb, var(--paper) 60%, transparent); }
+  .caption .numeral { color: var(--accent); }
 
   /* =================== SERVICES =================== */
   .services { background: var(--paper-alt); }
@@ -639,7 +683,7 @@
   }
 
   .service:last-child { border-right: none; }
-  .service:hover { background: color-mix(in srgb, var(--paper-alt) 40%, white); }
+  .service:hover { background: var(--paper-soft); }
 
   .num {
     font-family: var(--font-mono);
@@ -655,11 +699,12 @@
     font-weight: 400;
     margin-bottom: 0.75rem;
     letter-spacing: -0.015em;
+    color: var(--ink);
   }
 
   .service p {
     font-size: 0.95rem;
-    line-height: 1.6;
+    line-height: 1.65;
     color: var(--ink-2);
   }
 
@@ -700,6 +745,7 @@
     aspect-ratio: 4 / 3;
     background: var(--paper-alt);
     position: relative;
+    border: 1px solid var(--line);
   }
 
   .f-card:nth-child(odd) .f-img { aspect-ratio: 5 / 4; }
@@ -726,7 +772,10 @@
     font-size: clamp(1.35rem, 2.2vw, 2rem);
     letter-spacing: -0.015em;
     line-height: 1.05;
+    color: var(--ink);
   }
+
+  .f-card:hover .f-info h3 { color: var(--accent); }
 
   .f-meta {
     display: flex;
@@ -742,9 +791,11 @@
 
   /* =================== CTA =================== */
   .cta {
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--paper-alt);
+    color: var(--ink);
     padding: clamp(4rem, 8vw, 7rem) 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
   }
 
   .cta-grid {
@@ -756,15 +807,13 @@
 
   .cta h2 {
     font-size: clamp(2rem, 5.5vw, 5.2rem);
-    color: var(--paper);
+    color: var(--ink);
     line-height: 1;
     letter-spacing: -0.03em;
   }
 
-  .cta h2 .italic { color: color-mix(in srgb, var(--paper) 78%, transparent); }
-
   .cta-action p {
-    color: color-mix(in srgb, var(--paper) 75%, transparent);
+    color: var(--ink-2);
     margin-bottom: 1.5rem;
     max-width: 38ch;
   }
@@ -782,10 +831,11 @@
   .contact-lede {
     font-family: var(--font-display);
     font-size: clamp(1.6rem, 3vw, 2.3rem);
-    line-height: 1.25;
+    line-height: 1.3;
     letter-spacing: -0.02em;
     font-weight: 300;
     max-width: 30ch;
+    color: var(--ink);
   }
 
   .email-big {
@@ -795,14 +845,15 @@
     font-weight: 300;
     font-size: clamp(2rem, 6vw, 4.5rem);
     letter-spacing: -0.03em;
-    border-bottom: 1px solid var(--ink);
+    border-bottom: 1px solid var(--accent);
     padding-bottom: 0.1em;
     line-height: 1;
-    transition: color 0.3s ease;
+    color: var(--accent);
+    transition: color 0.3s ease, border-color 0.3s ease;
     font-variation-settings: 'opsz' 144, 'SOFT' 80, 'WONK' 1;
   }
 
-  .email-big:hover { color: var(--accent); border-bottom-color: var(--accent); opacity: 1; }
+  .email-big:hover { color: var(--accent-soft); border-bottom-color: var(--accent-soft); opacity: 1; }
 
   .contact-meta {
     display: grid;
@@ -813,15 +864,15 @@
     border-top: 1px solid var(--line);
   }
 
-  .contact-meta p { font-size: 0.95rem; margin-top: 0.25rem; }
-  .contact-meta a { border-bottom: 1px solid transparent; }
-  .contact-meta a:hover { border-bottom-color: var(--ink); opacity: 1; }
+  .contact-meta p { font-size: 0.95rem; margin-top: 0.25rem; color: var(--ink-2); }
+  .contact-meta a { border-bottom: 1px solid transparent; color: var(--ink); }
+  .contact-meta a:hover { border-bottom-color: var(--accent); color: var(--accent); opacity: 1; }
 
   /* =================== RESPONSIVE =================== */
   @media (max-width: 900px) {
-    .hero { height: min(92vh, 820px); min-height: 560px; }
+    .hero { height: min(94vh, 820px); min-height: 580px; }
     .hero-frame { padding: 1.25rem 1.1rem 1.75rem; }
-    .hero-top { flex-direction: column; gap: 0.4rem; }
+    .hero-top { flex-direction: column; gap: 0.4rem; align-items: flex-start; }
     .hero-bottom {
       flex-direction: column;
       align-items: flex-start;

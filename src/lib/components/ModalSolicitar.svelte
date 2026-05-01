@@ -166,9 +166,9 @@
   .ms-backdrop {
     position: fixed;
     inset: 0;
-    background: color-mix(in srgb, #0d0d0b 78%, transparent);
-    backdrop-filter: blur(8px) saturate(1.05);
-    -webkit-backdrop-filter: blur(8px) saturate(1.05);
+    background: color-mix(in srgb, #000 80%, transparent);
+    backdrop-filter: blur(10px) saturate(1.05);
+    -webkit-backdrop-filter: blur(10px) saturate(1.05);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -183,11 +183,11 @@
     max-width: 520px;
     max-height: calc(100vh - 2rem);
     overflow-y: auto;
-    background: var(--paper);
+    background: var(--paper-alt);
     color: var(--ink);
     padding: clamp(1.75rem, 4vw, 2.75rem);
     border: 1px solid var(--line-strong);
-    box-shadow: 0 40px 80px -20px rgba(13, 13, 11, 0.5);
+    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.85);
     animation: ms-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
@@ -275,8 +275,8 @@
   .ms-form input:focus,
   .ms-form textarea:focus {
     outline: none;
-    border-color: var(--ink);
-    background: #fff;
+    border-color: var(--accent);
+    background: var(--paper-soft);
   }
 
   .ms-form textarea { resize: vertical; min-height: 80px; }

@@ -1,20 +1,24 @@
 /* =====================================================================
    SL PIXEL — Editorial photography studio
    Typography: Fraunces (display, variable) + Instrument Sans (body)
+   Palette: deep warm black + gold (matches the new SLPixel mark)
    ===================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
 
 :root {
-  /* palette — ink on warm paper, sharp charcoal accents */
-  --paper: #f5f2ec;
-  --paper-alt: #ecE7DE;
-  --ink: #0d0d0b;
-  --ink-2: #1c1c1a;
-  --muted: #7a756c;
-  --line: #d6cfc3;
-  --line-strong: #b9b0a0;
-  --accent: #b04d25; /* terracotta — a single sharp accent */
+  /* palette — cream-on-black, gold accent */
+  --paper: #0b0a08;          /* canvas (dark) */
+  --paper-alt: #141210;      /* lifted dark surface */
+  --paper-soft: #1c1a16;     /* card / subtle elevation */
+  --ink: #ece4d0;            /* primary text */
+  --ink-2: #c9bfa9;           /* secondary text */
+  --muted: #7d756a;           /* meta / labels */
+  --line: #2a2620;            /* hairlines on dark */
+  --line-strong: #3d3830;     /* stronger dividers */
+  --accent: #c9a464;          /* gold — matches the logo */
+  --accent-deep: #a3823f;     /* hover / pressed gold */
+  --accent-soft: #efd9a8;     /* highlight gold */
 
   /* type */
   --font-display: 'Fraunces', 'Cormorant Garamond', 'Didot', 'Times New Roman', serif;
@@ -25,12 +29,14 @@
   --page-max: 1440px;
   --page-gutter: clamp(1.25rem, 3vw, 3rem);
   --radius: 0;
+
+  color-scheme: dark;
 }
 
 /* reset */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; background: var(--paper); }
 
 body {
   font-family: var(--font-sans);
@@ -60,13 +66,12 @@ h2 { font-size: clamp(2.25rem, 6vw, 5rem); font-weight: 300; }
 h3 { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 400; }
 h4 { font-size: clamp(1.1rem, 2vw, 1.5rem); font-weight: 400; }
 
-p  { font-size: clamp(1rem, 1.1vw, 1.125rem); color: var(--ink); line-height: 1.65; }
+p  { font-size: clamp(1rem, 1.1vw, 1.125rem); color: var(--ink-2); line-height: 1.7; }
 
-/* body text on dim bg */
 .prose p + p { margin-top: 1.2em; }
 
 a { color: inherit; text-decoration: none; transition: color 0.25s ease, opacity 0.25s ease; }
-a:hover { opacity: 0.72; }
+a:hover { opacity: 0.78; }
 
 img { display: block; max-width: 100%; height: auto; }
 
@@ -82,13 +87,14 @@ button {
   font-family: var(--font-sans);
   font-size: 0.68rem;
   font-weight: 500;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--accent);
 }
 
 .label-ink { color: var(--ink); }
-.label-paper { color: var(--paper); }
+.label-paper { color: var(--ink); }
+.label-muted { color: var(--muted); }
 
 .numeral {
   font-family: var(--font-mono);
@@ -109,7 +115,7 @@ button {
 .rule-short {
   width: 48px;
   height: 1px;
-  background: var(--ink);
+  background: var(--accent);
   border: 0;
 }
 
@@ -127,29 +133,29 @@ button {
 }
 
 /* -------------------------------------------------------------
-   buttons — editorial, underline-based
+   buttons — gold-bordered, transparent on dark
    ------------------------------------------------------------- */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.1rem 1.8rem;
-  background: var(--ink);
-  color: var(--paper);
+  padding: 1.05rem 1.9rem;
+  background: transparent;
+  color: var(--accent);
   font-family: var(--font-sans);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 500;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--accent);
   border-radius: 0;
   cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+  transition: background 0.35s ease, color 0.35s ease, transform 0.3s ease, border-color 0.35s ease;
 }
 
 .btn:hover {
-  background: transparent;
-  color: var(--ink);
+  background: var(--accent);
+  color: var(--paper);
   opacity: 1;
   transform: translateY(-1px);
 }
@@ -167,23 +173,25 @@ button {
 .btn-ghost {
   background: transparent;
   color: var(--ink);
-  border: 1px solid var(--ink);
+  border: 1px solid var(--ink-2);
 }
 
 .btn-ghost:hover {
   background: var(--ink);
   color: var(--paper);
+  border-color: var(--ink);
 }
 
+/* legacy alias kept so old templates still render correctly */
 .btn-paper {
   background: transparent;
-  color: var(--paper);
-  border: 1px solid var(--paper);
+  color: var(--accent);
+  border: 1px solid var(--accent);
 }
 
 .btn-paper:hover {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--accent);
+  color: var(--paper);
 }
 
 /* link-style button (text with arrow) */
@@ -192,12 +200,12 @@ button {
   align-items: baseline;
   gap: 0.6rem;
   font-family: var(--font-sans);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 500;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--ink);
-  border-bottom: 1px solid var(--ink);
+  color: var(--accent);
+  border-bottom: 1px solid var(--accent);
   padding-bottom: 4px;
   transition: color 0.3s ease, border-color 0.3s ease;
 }
@@ -208,7 +216,7 @@ button {
   display: inline-block;
 }
 
-.link-arrow:hover { opacity: 1; }
+.link-arrow:hover { opacity: 1; color: var(--accent-soft); border-color: var(--accent-soft); }
 .link-arrow:hover::after { transform: translateX(6px); }
 
 /* -------------------------------------------------------------
@@ -217,7 +225,7 @@ button {
 input, textarea {
   width: 100%;
   padding: 0.95rem 1.05rem;
-  background: var(--paper);
+  background: var(--paper-alt);
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 1rem;
@@ -227,10 +235,12 @@ input, textarea {
   transition: border-color 0.25s ease, background 0.25s ease;
 }
 
+input::placeholder, textarea::placeholder { color: var(--muted); }
+
 input:focus, textarea:focus {
   outline: none;
-  border-color: var(--ink);
-  background: #fff;
+  border-color: var(--accent);
+  background: var(--paper-soft);
 }
 
 /* -------------------------------------------------------------
@@ -268,4 +278,9 @@ input:focus, textarea:focus {
 }
 
 /* global selection */
-::selection { background: var(--ink); color: var(--paper); }
+::selection { background: var(--accent); color: var(--paper); }
+
+/* scrollbars on dark */
+@supports (scrollbar-color: auto) {
+  html { scrollbar-color: var(--line-strong) var(--paper); }
+}

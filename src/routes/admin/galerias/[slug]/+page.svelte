@@ -5,7 +5,24 @@
   export let data;
   export let form;
 
-  $: ({ gallery, categories, publicBase } = data);
+  $: ({ gallery, categories, publicBase, siteUrl } = data);
+  $: shareUrl = `${siteUrl}/galeria/${gallery.slug}`;
+
+  let lastPassword = '';
+  let copyMsg = '';
+  async function copyShare() {
+    const text = lastPassword
+      ? `${gallery.title}\n${shareUrl}\nContraseña (descargas): ${lastPassword}`
+      : `${gallery.title}\n${shareUrl}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      copyMsg = 'Copiado al portapapeles ✓';
+    } catch {
+      copyMsg = 'No se pudo copiar. Seleccioná el texto manualmente.';
+    }
+    setTimeout(() => (copyMsg = ''), 3000);
+  }
+  $: if (form?.passwordChanged && form?.lastPassword) lastPassword = form.lastPassword;
 
   let files = null;
   let uploadStatus = '';
@@ -155,29 +172,75 @@
   {/if}
 </section>
 
+<section class="visibility">
+  <h2>Visibilidad {gallery.hidden ? '· 👁️‍🗨️ Oculta' : '· 🌐 Pública'}</h2>
+  <p class="copy">
+    {gallery.hidden
+      ? 'Esta galería NO aparece en el sitio público. Solo es accesible con el enlace directo de abajo.'
+      : 'Esta galería aparece en el portafolio público.'}
+  </p>
+  <form method="POST" action="?/setHidden" use:enhance>
+    <input type="hidden" name="hidden" value={gallery.hidden ? '0' : '1'} />
+    <button type="submit" class="btn">
+      {gallery.hidden ? 'Hacer pública' : 'Ocultar del portafolio'}
+    </button>
+  </form>
+  {#if form?.hiddenChanged}<p class="ok">Visibilidad actualizada.</p>{/if}
+</section>
+
+<section class="share">
+  <h2>Compartir enlace</h2>
+  <p class="copy">
+    Mandale este enlace a tu cliente.
+    {gallery.protected
+      ? ' La galería es visible para cualquiera, pero solo se podrán descargar las fotos al ingresar la contraseña.'
+      : ' La galería se puede ver y descargar libremente.'}
+  </p>
+  <div class="share-box">
+    <span class="share-label">URL</span>
+    <code class="share-url">{shareUrl}</code>
+  </div>
+  {#if gallery.protected && lastPassword}
+    <div class="share-box">
+      <span class="share-label">Contraseña (descargas)</span>
+      <code class="share-url">{lastPassword}</code>
+    </div>
+  {:else if gallery.protected}
+    <p class="muted small">
+      🔒 Galería con contraseña activa. Por seguridad la contraseña no se muestra acá —
+      si la perdiste, definí una nueva más abajo.
+    </p>
+  {/if}
+  <div class="share-actions">
+    <button type="button" class="btn" on:click={copyShare}>Copiar enlace</button>
+    <a class="link-btn" href={shareUrl} target="_blank" rel="noopener noreferrer">Abrir en una pestaña →</a>
+  </div>
+  {#if copyMsg}<p class="ok">{copyMsg}</p>{/if}
+</section>
+
 <section class="access">
-  <h2>Acceso {gallery.protected ? '· 🔒 Protegida' : '· Libre'}</h2>
+  <h2>Descargas {gallery.protected ? '· 🔒 Con contraseña' : '· 🟢 Libres'}</h2>
   <p class="copy">
     {gallery.protected
-      ? 'Esta galería requiere una contraseña para visualizarse. Cambiala o quitala cuando quieras.'
-      : 'Esta galería es pública. Cualquier persona con el enlace puede verla.'}
+      ? 'Cualquiera con el enlace puede ver las fotos, pero descargar / clic derecho / arrastrar está deshabilitado. Solo quienes ingresen la contraseña en la galería podrán descargar.'
+      : 'Las fotos se pueden ver y descargar libremente. Si querés proteger las descargas, definí una contraseña.'}
   </p>
   <form method="POST" action="?/setPassword" use:enhance>
     <div class="row access-row">
       <label>
-        <span>{gallery.protected ? 'Nueva contraseña' : 'Contraseña'}</span>
+        <span>{gallery.protected ? 'Nueva contraseña' : 'Contraseña para descargas'}</span>
         <input name="password" type="text" required minlength="4" placeholder="Mínimo 4 caracteres" />
       </label>
-      <button type="submit" class="btn">{gallery.protected ? 'Actualizar contraseña' : 'Proteger galería'}</button>
+      <button type="submit" class="btn">{gallery.protected ? 'Actualizar contraseña' : 'Proteger descargas'}</button>
     </div>
   </form>
   {#if gallery.protected}
-    <form method="POST" action="?/clearPassword" use:enhance on:submit={(e) => { if (!confirm('¿Quitar la contraseña y dejar la galería pública?')) e.preventDefault(); }}>
-      <button type="submit" class="link-btn danger">Quitar contraseña · volver a pública</button>
+    <form method="POST" action="?/clearPassword" use:enhance on:submit={(e) => { if (!confirm('¿Quitar la contraseña? Cualquiera con el enlace podrá descargar las fotos.')) e.preventDefault(); }}>
+      <button type="submit" class="link-btn danger">Quitar contraseña · descargas libres</button>
     </form>
   {/if}
   {#if form?.passwordChanged}<p class="ok">Contraseña guardada.</p>{/if}
-  {#if form?.passwordCleared}<p class="ok">Galería ahora pública.</p>{/if}
+  {#if form?.passwordCleared}<p class="ok">Descargas ahora libres.</p>{/if}
   {#if form?.error}<p class="error">{form.error}</p>{/if}
 </section>
 
@@ -252,7 +315,34 @@
 
   .danger-zone { border-color: #fca5a5; background: #fff8f8; }
 
-  .access { background: #fff; border-color: #d6cfc3; }
+  .visibility, .share, .access { background: #fff; border-color: #d6cfc3; }
+  .share-box {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 0.9rem;
+    background: #f8f6f0;
+    border: 1px solid #d6cfc3;
+    margin-bottom: 0.75rem;
+  }
+  .share-label {
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #7a756c;
+    min-width: 90px;
+  }
+  .share-url {
+    font-family: Menlo, Monaco, monospace;
+    font-size: 0.85rem;
+    color: #0d0d0b;
+    word-break: break-all;
+    flex: 1;
+  }
+  .share-actions { display: flex; gap: 1rem; align-items: center; margin-top: 0.75rem; }
+  .share-actions .link-btn { color: #0d0d0b; }
+  .muted.small { font-size: 0.82rem; color: #7a756c; margin: 0.4rem 0 0.6rem; }
+
   .access .row.access-row {
     display: grid;
     grid-template-columns: 1fr auto;

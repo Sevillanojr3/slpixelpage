@@ -53,7 +53,7 @@
     return Date.parse(g.createdAt || g.date || '') || 0;
   }
   const latest = [...(data.galleries || [])]
-    .filter((g) => (g.photos || []).length > 0 || g.protected)
+    .filter((g) => (g.photos || []).length > 0)
     .map((g) => ({ ...g, title: cleanTitle(g.title) }))
     .sort((a, b) => ts(b) - ts(a))
     .slice(0, 6);
@@ -194,18 +194,16 @@
         {#each latest as g, i (g.slug)}
           <li class="l-card">
             <a href={`/galeria/${g.slug}`} class="l-link">
-              <div class="l-img" class:locked={g.protected}>
+              <div class="l-img">
                 {#if g.cover}
                   <img src={thumbUrl(g.cover, g.slug)} alt={g.title} loading="lazy" />
-                {:else}
-                  <div class="l-lock">
-                    <span aria-hidden="true">🔒</span>
-                    <span class="lock-label">Protegida</span>
-                  </div>
+                {/if}
+                {#if g.protected}
+                  <span class="dl-pill" title="Descargas con contraseña">🔒</span>
                 {/if}
               </div>
               <div class="l-info">
-                <span class="numeral">{shortDate(g.createdAt || g.date) || '—'}{g.protected ? ' · 🔒' : ''}</span>
+                <span class="numeral">{shortDate(g.createdAt || g.date) || '—'}</span>
                 <h3>{g.title}</h3>
                 <span class="label l-meta">{g.category || 'archivo'} · {(g.photos || []).length} fotos</span>
               </div>
@@ -892,27 +890,19 @@
   }
   .l-link:hover .l-img img { transform: scale(1.045); }
 
-  .l-img.locked {
-    background:
-      repeating-linear-gradient(135deg, var(--paper-alt) 0 14px, var(--paper-soft) 14px 28px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .l-lock {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--ink-2);
-    font-size: 1.8rem;
-  }
-  .lock-label {
+  .dl-pill {
+    position: absolute;
+    top: 0.55rem;
+    left: 0.55rem;
+    background: color-mix(in srgb, var(--paper) 78%, transparent);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    padding: 0.18rem 0.4rem;
     font-family: var(--font-sans);
-    font-size: 0.66rem;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    color: var(--accent);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 
   .l-info {

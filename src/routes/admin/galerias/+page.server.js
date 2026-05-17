@@ -5,8 +5,11 @@ import {
   deleteGallery,
   setGalleryCategory,
   setGalleryPassword,
+  setGalleryHidden,
   isProtected,
+  isHidden,
 } from '$lib/server/galleries-store.js';
+import { siteUrl } from '$lib/server/r2.js';
 
 export const load = async () => {
   const data = await read();
@@ -18,9 +21,11 @@ export const load = async () => {
       date: g.date || null,
       photoCount: (g.photos || []).length,
       protected: isProtected(g),
+      hidden: isHidden(g),
       createdAt: g.createdAt || g.date || null,
     })),
     categories: data.categories,
+    siteUrl: siteUrl(),
   };
 };
 
@@ -80,6 +85,14 @@ export const actions = {
     const form = await request.formData();
     const slug = (form.get('slug') || '').toString();
     await setGalleryPassword(slug, null);
+    return { ok: true };
+  },
+
+  toggleHidden: async ({ request }) => {
+    const form = await request.formData();
+    const slug = (form.get('slug') || '').toString();
+    const hidden = form.get('hidden') === '1';
+    await setGalleryHidden(slug, hidden);
     return { ok: true };
   },
 

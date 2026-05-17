@@ -22,8 +22,15 @@ export const logos = {
 };
 
 // New SLPixel brand identity (gold + black). Served locally.
+// Two-theme variants — pick via `brandLogo(theme)` below.
 export const brand = {
-  navbar:  '/brand/slpixel-navbar.png',     // for dark backgrounds
-  light:   '/brand/slpixel-light-bg.png',   // for light backgrounds
-  favicon: '/brand/favicon.png',            // camera lens iso mark
+  navbar:    '/brand/slpixel-navbar.png',     // legacy alias = dark-theme nav
+  dark:      '/brand/slpixel-navbar.png',     // for dark backgrounds
+  light:     '/brand/slpixel-lightmode.png',  // for cream/light backgrounds
+  lightAlt:  '/brand/slpixel-light-bg.png',   // older light variant (kept)
+  favicon:   '/brand/favicon.png',            // camera lens iso mark
 };
+
+export function brandLogo(theme) {
+  return theme === 'light' ? brand.light : brand.dark;
+}

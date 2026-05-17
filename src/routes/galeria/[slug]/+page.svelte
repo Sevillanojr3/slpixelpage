@@ -4,12 +4,14 @@
 
   export let data;
   export let form;
-  $: ({ gallery, locked } = data);
+  $: ({ gallery, downloadsUnlocked } = data);
+  $: protectedDownloads = gallery.protected && !downloadsUnlocked;
 
   const cleanTitle = (t) => (t || '').replace(/\s+de SLPixel$/i, '').trim();
   $: title = cleanTitle(gallery.title);
 
   let lightboxIdx = -1;
+  let showUnlock = false;
 
   function openLightbox(i) {
     lightboxIdx = i;
@@ -29,9 +31,38 @@
     else if (e.key === 'ArrowRight') next();
   }
 
+  function blockContext(e) {
+    if (protectedDownloads) e.preventDefault();
+  }
+
+  function filenameFor(photo, i) {
+    const base = (gallery.slug || 'foto').replace(/[^a-z0-9-_]/gi, '');
+    const ext = (photo.ext || (photo.key || '').split('.').pop() || 'jpg').toLowerCase();
+    return `${base}-${String(i + 1).padStart(3, '0')}.${ext}`;
+  }
+
+  async function downloadCurrent() {
+    if (!current) return;
+    const url = fullUrl(current, gallery.slug);
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filenameFor(current, lightboxIdx);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      // fallback: open in new tab
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }
+
   onMount(() => () => (document.body.style.overflow = ''));
 
-  $: current = !locked && lightboxIdx >= 0 ? gallery.photos[lightboxIdx] : null;
+  $: current = lightboxIdx >= 0 ? gallery.photos[lightboxIdx] : null;
   $: humanDate = gallery.date
     ? new Date(gallery.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
     : '';
@@ -44,32 +75,6 @@
 
 <svelte:window on:keydown={onKey} />
 
-{#if locked}
-  <section class="locked-section">
-    <div class="container locked-grid">
-      <div class="locked-meta">
-        <a href="/galeria" class="back">
-          <span class="arrow">←</span>
-          <span class="back-label">Volver al índice</span>
-        </a>
-        <span class="label">Galería protegida</span>
-        <h1 class="head-title">{title}</h1>
-        <p class="locked-copy">
-          Esta galería es privada. Ingresá la contraseña que te compartimos para verla.
-        </p>
-      </div>
-
-      <form method="POST" action="?/unlock" class="lock-form">
-        <label>
-          <span>Contraseña</span>
-          <input name="password" type="password" autocomplete="current-password" required autofocus />
-        </label>
-        {#if form?.error}<p class="lock-error">{form.error}</p>{/if}
-        <button type="submit" class="btn">Desbloquear galería</button>
-      </form>
-    </div>
-  </section>
-{:else}
 <!-- ===== Header ===== -->
 <section class="g-head">
   <div class="container">
@@ -102,8 +107,36 @@
   </div>
 </section>
 
+{#if gallery.protected}
+  <section class="dl-band">
+    <div class="container dl-band-grid">
+      <div>
+        <span class="label">{downloadsUnlocked ? '🔓 Descargas activas' : '🔒 Descargas protegidas'}</span>
+        <p class="dl-copy">
+          {downloadsUnlocked
+            ? 'Tenés permiso para descargar las fotos de esta galería.'
+            : 'Las fotos se pueden ver pero no descargar. Ingresá la contraseña que te compartimos para activar las descargas.'}
+        </p>
+      </div>
+      {#if !downloadsUnlocked}
+        <div class="dl-action">
+          {#if showUnlock}
+            <form method="POST" action="?/unlock" class="unlock-form">
+              <input name="password" type="password" autocomplete="current-password" required placeholder="Contraseña" />
+              <button type="submit" class="btn">Desbloquear</button>
+            </form>
+            {#if form?.error}<p class="dl-error">{form.error}</p>{/if}
+          {:else}
+            <button type="button" class="btn" on:click={() => (showUnlock = true)}>Ingresar contraseña</button>
+          {/if}
+        </div>
+      {/if}
+    </div>
+  </section>
+{/if}
+
 <!-- ===== Photo grid ===== -->
-<section class="g-grid-section">
+<section class="g-grid-section" class:protected={protectedDownloads} on:contextmenu={blockContext}>
   <div class="container wide">
     <div class="g-grid">
       {#each gallery.photos as photo, i (photoKey(photo))}
@@ -114,8 +147,15 @@
           on:click={() => openLightbox(i)}
           aria-label={`Abrir fotografía ${i + 1}`}
         >
-          <img src={thumbUrl(photo, gallery.slug)} loading="lazy" decoding="async" alt={`${title} — ${i + 1}`} />
+          <img
+            src={thumbUrl(photo, gallery.slug)}
+            loading="lazy"
+            decoding="async"
+            alt={`${title} — ${i + 1}`}
+            draggable={!protectedDownloads}
+          />
           <span class="tile-num">{String(i + 1).padStart(3, '0')}</span>
+          {#if protectedDownloads}<span class="tile-shield" aria-hidden="true"></span>{/if}
         </button>
       {/each}
     </div>
@@ -130,15 +170,21 @@
     <a href="/galeria" class="link-arrow">Siguiente portafolio</a>
   </div>
 </section>
-{/if}
 
 <!-- ===== Lightbox ===== -->
 {#if current}
-  <div class="lightbox" on:click={closeLightbox} role="presentation">
+  <div class="lightbox" class:protected={protectedDownloads} on:click={closeLightbox} on:contextmenu={blockContext} role="presentation">
     <div class="lb-bar">
       <span class="numeral">{String(lightboxIdx + 1).padStart(3, '0')} / {String(gallery.photos.length).padStart(3, '0')}</span>
       <span class="label label-paper">{title}</span>
-      <button class="lb-close" on:click|stopPropagation={closeLightbox} aria-label="Cerrar">✕ Cerrar</button>
+      <div class="lb-bar-actions">
+        {#if downloadsUnlocked}
+          <button class="lb-download" on:click|stopPropagation={downloadCurrent} aria-label="Descargar foto">⤓ Descargar</button>
+        {:else if gallery.protected}
+          <span class="lb-locked" title="Descargas con contraseña">🔒 Sin descargas</span>
+        {/if}
+        <button class="lb-close" on:click|stopPropagation={closeLightbox} aria-label="Cerrar">✕ Cerrar</button>
+      </div>
     </div>
 
     {#if lightboxIdx > 0}
@@ -152,8 +198,10 @@
       class="lb-img"
       src={fullUrl(current, gallery.slug)}
       alt={`${title} — fotografía ${lightboxIdx + 1}`}
+      draggable={!protectedDownloads}
       on:click|stopPropagation
     />
+    {#if protectedDownloads}<div class="lb-shield" aria-hidden="true" on:click|stopPropagation></div>{/if}
 
     {#if lightboxIdx < gallery.photos.length - 1}
       <button class="lb-nav next" on:click|stopPropagation={next} aria-label="Siguiente">
@@ -165,68 +213,73 @@
 {/if}
 
 <style>
-  /* ============ LOCKED ============ */
-  .locked-section {
-    padding: clamp(4rem, 8vw, 7rem) 0;
+  /* ============ DOWNLOAD BAND ============ */
+  .dl-band {
+    background: var(--paper-alt);
     border-bottom: 1px solid var(--line);
-    background: var(--paper);
+    padding: 1.25rem 0;
   }
-  .locked-grid {
+  .dl-band-grid {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: clamp(2rem, 6vw, 5rem);
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
     align-items: center;
   }
-  .locked-meta .label { display: block; margin: 1.5rem 0 0.5rem; color: var(--accent); }
-  .locked-copy {
-    margin-top: 1.25rem;
-    max-width: 42ch;
-    color: var(--ink-2);
-    line-height: 1.65;
-  }
-  .lock-form {
-    background: var(--paper-alt);
-    border: 1px solid var(--line-strong);
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .lock-form label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-  .lock-form label span {
-    font-size: 0.7rem;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .lock-form input {
-    padding: 0.85rem 1rem;
+  .dl-band .label { color: var(--accent); display: block; margin-bottom: 0.4rem; }
+  .dl-copy { color: var(--ink-2); font-size: 0.95rem; line-height: 1.55; max-width: 60ch; margin: 0; }
+  .dl-action { display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end; }
+  .unlock-form { display: flex; gap: 0.5rem; }
+  .unlock-form input {
+    padding: 0.65rem 0.85rem;
     background: var(--paper);
     color: var(--ink);
     border: 1px solid var(--line-strong);
-    font-size: 1rem;
-    letter-spacing: 0.05em;
+    font-size: 0.95rem;
+    min-width: 220px;
   }
-  .lock-form input:focus {
-    outline: none;
-    border-color: var(--accent);
-    background: var(--paper-soft);
-  }
-  .lock-form .btn { justify-content: center; width: 100%; }
-  .lock-error {
+  .unlock-form input:focus { outline: none; border-color: var(--accent); background: var(--paper-soft); }
+  .dl-error {
     color: #b00020;
+    font-size: 0.85rem;
     background: color-mix(in srgb, #b00020 12%, transparent);
     border: 1px solid color-mix(in srgb, #b00020 35%, transparent);
-    padding: 0.6rem 0.85rem;
-    font-size: 0.85rem;
+    padding: 0.4rem 0.7rem;
   }
-  @media (max-width: 800px) {
-    .locked-grid { grid-template-columns: 1fr; }
+  @media (max-width: 720px) {
+    .dl-band-grid { grid-template-columns: 1fr; }
+    .dl-action { align-items: stretch; }
+    .unlock-form { flex-direction: column; }
+    .unlock-form input { min-width: 0; }
   }
+
+  /* ============ DOWNLOAD PROTECTION ============ */
+  .g-grid-section.protected .tile img,
+  .lightbox.protected .lb-img {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+    pointer-events: none;
+  }
+  .tile-shield {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    z-index: 2;
+    pointer-events: auto;
+  }
+  .lb-shield {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    margin: auto;
+    width: min(92vw, 1400px);
+    height: 85vh;
+    background: transparent;
+    pointer-events: auto;
+    z-index: 2;
+  }
+  .g-grid-section.protected .tile { position: relative; }
+  .g-grid-section.protected .tile .tile-num { z-index: 3; }
 
   /* ============ HEADER ============ */
   .g-head {
@@ -389,7 +442,9 @@
   .lb-bar .numeral { color: color-mix(in srgb, var(--ink-fixed-light) 90%, transparent); font-size: 0.8rem; }
   .lb-bar .label-paper { font-size: 0.7rem; letter-spacing: 0.18em; color: color-mix(in srgb, var(--ink-fixed-light) 70%, transparent); }
 
-  .lb-close {
+  .lb-bar-actions { display: flex; gap: 0.65rem; align-items: center; }
+
+  .lb-close, .lb-download {
     font-family: var(--font-sans);
     font-size: 0.72rem;
     letter-spacing: 0.18em;
@@ -399,13 +454,33 @@
     border: 1px solid color-mix(in srgb, var(--ink-fixed-light) 30%, transparent);
     padding: 0.5rem 0.9rem;
     cursor: pointer;
-    transition: background 0.3s ease, border-color 0.3s ease;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
   }
 
   .lb-close:hover {
     background: var(--ink-fixed-light);
     color: var(--paper-fixed-dark);
     border-color: var(--ink-fixed-light);
+  }
+
+  .lb-download {
+    color: var(--accent-fixed);
+    border-color: color-mix(in srgb, var(--accent-fixed) 50%, transparent);
+  }
+  .lb-download:hover {
+    background: var(--accent-fixed);
+    color: var(--paper-fixed-dark);
+    border-color: var(--accent-fixed);
+  }
+
+  .lb-locked {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--ink-fixed-light) 65%, transparent);
+    padding: 0.45rem 0.75rem;
+    border: 1px dashed color-mix(in srgb, var(--ink-fixed-light) 25%, transparent);
   }
 
   .lb-img {

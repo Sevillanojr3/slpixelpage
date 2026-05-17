@@ -86,7 +86,10 @@
         <td>
           <a href={`/admin/galerias/${g.slug}`} class="title">{g.title}</a>
           {#if g.protected}
-            <span class="lock-pill" title="Galería con contraseña">🔒 Protegida</span>
+            <span class="lock-pill" title="Descargas con contraseña">🔒 Descargas</span>
+          {/if}
+          {#if g.hidden}
+            <span class="hidden-pill" title="No aparece públicamente">👁️‍🗨️ Oculta</span>
           {/if}
           <div class="meta">/{g.slug}{g.date ? ` · ${g.date}` : ''}</div>
         </td>
@@ -104,6 +107,11 @@
         <td class="num">{g.photoCount}</td>
         <td class="actions">
           <a href={`/admin/galerias/${g.slug}`}>Editar</a>
+          <form method="POST" action="?/toggleHidden" use:enhance>
+            <input type="hidden" name="slug" value={g.slug} />
+            <input type="hidden" name="hidden" value={g.hidden ? '0' : '1'} />
+            <button type="submit" class="link-btn">{g.hidden ? 'Mostrar' : 'Ocultar'}</button>
+          </form>
           <form method="POST" action="?/delete" use:enhance on:submit={(e) => { if (!confirm(`¿Eliminar "${g.title}"? Las fotos siguen en R2.`)) e.preventDefault(); }}>
             <input type="hidden" name="slug" value={g.slug} />
             <button type="submit" class="link-btn danger">Eliminar</button>
@@ -160,6 +168,12 @@
   .lock-pill {
     display: inline-block; margin-left: 0.5rem; padding: 0.05rem 0.45rem;
     background: #fff7e0; border: 1px solid #d8c270; color: #7a5a00;
+    font-size: 0.7rem; letter-spacing: 0.06em; border-radius: 999px;
+    vertical-align: middle;
+  }
+  .hidden-pill {
+    display: inline-block; margin-left: 0.35rem; padding: 0.05rem 0.45rem;
+    background: #efeae0; border: 1px solid #b9ac8a; color: #4a4339;
     font-size: 0.7rem; letter-spacing: 0.06em; border-radius: 999px;
     vertical-align: middle;
   }

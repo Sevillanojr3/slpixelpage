@@ -23,6 +23,8 @@ function getClient() {
 
 export const bucket = () => envVar('R2_BUCKET');
 export const publicUrl = () => (envVar('R2_PUBLIC_URL') || '').replace(/\/$/, '');
+export const siteUrl = () =>
+  (envVar('PUBLIC_SITE_URL') || 'https://slpixel.com').replace(/\/$/, '');
 
 /** Generate a presigned PUT URL so the browser can upload directly to R2. */
 export async function presignPut(key, contentType, expiresInSec = 600) {

@@ -23,6 +23,7 @@ export function verifyGalleryPassword(gallery, password) {
 }
 
 export const isProtected = (g) => Boolean(g?.passwordHash);
+export const isHidden = (g) => Boolean(g?.hidden);
 
 const DEFAULT_CATEGORIES = [
   { id: 'eventos', label: 'Eventos' },
@@ -146,6 +147,14 @@ export async function setGalleryCategory(slug, category) {
   const g = data.galleries.find((x) => x.slug === slug);
   if (!g) throw new Error('Galería no encontrada.');
   g.category = category;
+  await write(data);
+}
+
+export async function setGalleryHidden(slug, hidden) {
+  const data = await read();
+  const g = data.galleries.find((x) => x.slug === slug);
+  if (!g) throw new Error('Galería no encontrada.');
+  g.hidden = Boolean(hidden);
   await write(data);
 }
 

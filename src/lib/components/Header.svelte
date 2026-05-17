@@ -1,8 +1,11 @@
 <script>
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
-  import { brand } from '$lib/logos.js';
+  import { brandLogo } from '$lib/logos.js';
+  import { theme } from '$lib/theme.js';
   import ThemeToggle from './ThemeToggle.svelte';
+
+  $: logoSrc = brandLogo($theme);
 
   let menuOpen = false;
   let scrolled = false;
@@ -21,7 +24,7 @@
   <div class="container">
     <nav class="nav">
       <a href="/" class="brand" aria-label="SLPixel, inicio">
-        <img class="brand-mark" src={brand.navbar} alt="SLPixel · Fotografía" />
+        <img class="brand-mark" src={logoSrc} alt="SLPixel · Fotografía" />
       </a>
 
       <ul class="nav-links" class:open={menuOpen}>

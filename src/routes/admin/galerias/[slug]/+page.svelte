@@ -155,6 +155,32 @@
   {/if}
 </section>
 
+<section class="access">
+  <h2>Acceso {gallery.protected ? '· 🔒 Protegida' : '· Libre'}</h2>
+  <p class="copy">
+    {gallery.protected
+      ? 'Esta galería requiere una contraseña para visualizarse. Cambiala o quitala cuando quieras.'
+      : 'Esta galería es pública. Cualquier persona con el enlace puede verla.'}
+  </p>
+  <form method="POST" action="?/setPassword" use:enhance>
+    <div class="row access-row">
+      <label>
+        <span>{gallery.protected ? 'Nueva contraseña' : 'Contraseña'}</span>
+        <input name="password" type="text" required minlength="4" placeholder="Mínimo 4 caracteres" />
+      </label>
+      <button type="submit" class="btn">{gallery.protected ? 'Actualizar contraseña' : 'Proteger galería'}</button>
+    </div>
+  </form>
+  {#if gallery.protected}
+    <form method="POST" action="?/clearPassword" use:enhance on:submit={(e) => { if (!confirm('¿Quitar la contraseña y dejar la galería pública?')) e.preventDefault(); }}>
+      <button type="submit" class="link-btn danger">Quitar contraseña · volver a pública</button>
+    </form>
+  {/if}
+  {#if form?.passwordChanged}<p class="ok">Contraseña guardada.</p>{/if}
+  {#if form?.passwordCleared}<p class="ok">Galería ahora pública.</p>{/if}
+  {#if form?.error}<p class="error">{form.error}</p>{/if}
+</section>
+
 <section class="danger-zone">
   <h2>Zona peligrosa</h2>
   <form method="POST" action="?/delete" use:enhance on:submit={(e) => { if (!confirm(`¿Eliminar la galería "${gallery.title}"? Las fotos en R2 NO se borran.`)) e.preventDefault(); }}>
@@ -225,4 +251,15 @@
   .empty { color: #7a756c; font-size: 0.9rem; }
 
   .danger-zone { border-color: #fca5a5; background: #fff8f8; }
+
+  .access { background: #fff; border-color: #d6cfc3; }
+  .access .row.access-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 0.85rem;
+  }
+  .access .row.access-row .btn { white-space: nowrap; align-self: end; }
+  .access .link-btn { margin-top: 0.4rem; }
 </style>

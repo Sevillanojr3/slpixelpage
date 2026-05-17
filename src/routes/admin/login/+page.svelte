@@ -1,4 +1,5 @@
 <script>
+  export let data;
   export let form;
 </script>
 
@@ -6,19 +7,36 @@
   <div class="card">
     <span class="eyebrow">Acceso restringido</span>
     <h1>Iniciar sesión</h1>
-    <p class="copy">
-      Vamos a enviar un código de 6 dígitos al correo administrador. Vence en 10 minutos.
-    </p>
 
-    <form method="POST">
-      <button type="submit" class="btn">Enviar código</button>
-    </form>
+    {#if !data.hasPassword}
+      <p class="copy">
+        Aún no hay contraseña configurada. Vamos a enviarte un código por correo a
+        <strong>{data.adminEmail}</strong> para que puedas elegir una.
+      </p>
+      <form method="POST" action="/admin/forgot">
+        <input type="hidden" name="setup" value="1" />
+        <button type="submit" class="btn">Configurar contraseña</button>
+      </form>
+    {:else}
+      <p class="copy">Ingresá tu contraseña para entrar al panel.</p>
+      <form method="POST">
+        <input
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+          autofocus
+          placeholder="Contraseña"
+        />
+        <button type="submit" class="btn">Entrar</button>
+      </form>
 
-    {#if form?.error}
-      <p class="error">{form.error}</p>
+      {#if form?.error}<p class="error">{form.error}</p>{/if}
+
+      <p class="help">
+        ¿Olvidaste tu contraseña? <a href="/admin/forgot">Enviar código por correo</a>.
+      </p>
     {/if}
-
-    <p class="help">¿Ya tenés un código? <a href="/admin/verify">Ingresalo acá</a>.</p>
   </div>
 </section>
 
@@ -45,7 +63,18 @@
     margin-bottom: 0.85rem;
   }
   h1 { font-size: 1.7rem; font-weight: 400; margin: 0 0 0.85rem; }
-  .copy { font-size: 0.95rem; line-height: 1.5; color: #4a4a4a; margin: 0 0 1.75rem; }
+  .copy { font-size: 0.95rem; line-height: 1.5; color: #4a4a4a; margin: 0 0 1.25rem; }
+  .copy strong { color: #0d0d0b; font-weight: 600; }
+  input[type='password'] {
+    width: 100%;
+    padding: 0.85rem 0.95rem;
+    background: #f8f6f0;
+    border: 1px solid #d6cfc3;
+    font-size: 1rem;
+    margin-bottom: 0.85rem;
+    color: #0d0d0b;
+  }
+  input[type='password']:focus { outline: none; border-color: #0d0d0b; background: #fff; }
   .btn {
     width: 100%;
     padding: 0.95rem;
@@ -72,5 +101,5 @@
     color: #7a756c;
     text-align: center;
   }
-  .help a { color: #0d0d0b; }
+  .help a { color: #0d0d0b; text-decoration: underline; }
 </style>

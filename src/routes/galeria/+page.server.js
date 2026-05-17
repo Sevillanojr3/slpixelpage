@@ -12,7 +12,9 @@ export async function load() {
       date: g.date,
       category: g.category || 'otros',
       count: g.photos.length,
-      cover: g.photos[0],
+      // hide cover preview for protected galleries
+      cover: g.passwordHash ? null : g.photos[0],
+      protected: Boolean(g.passwordHash),
     }))
     .sort((a, b) => (a.date && b.date ? b.date.localeCompare(a.date) : 0));
 

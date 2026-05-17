@@ -2,11 +2,13 @@
    SL PIXEL — Editorial photography studio
    Typography: Fraunces (display, variable) + Instrument Sans (body)
    Palette: deep warm black + gold (matches the new SLPixel mark)
+   Themes:  data-theme="dark" (default)  ·  data-theme="light" (cream)
    ===================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
 
-:root {
+:root,
+:root[data-theme='dark'] {
   /* palette — cream-on-black, gold accent */
   --paper: #0b0a08;          /* canvas (dark) */
   --paper-alt: #141210;      /* lifted dark surface */
@@ -20,23 +22,74 @@
   --accent-deep: #a3823f;     /* hover / pressed gold */
   --accent-soft: #efd9a8;     /* highlight gold */
 
-  /* type */
+  /* fixed tokens — do NOT flip between themes.
+     Used in zones that must stay dark (hero scrim, lightbox, footer). */
+  --paper-fixed-dark: #0b0a08;
+  --paper-fixed-deep: #050403;
+  --ink-fixed-light: #ece4d0;
+  --ink-fixed-light-2: #c9bfa9;
+  --line-fixed-dark: #2a2620;
+  --accent-fixed: #c9a464;
+  --accent-fixed-soft: #efd9a8;
+  --muted-fixed: #7d756a;
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  /* palette — warm cream / bone with deep warm-black ink */
+  --paper: #f3ebd6;          /* canvas — warm bone/cream */
+  --paper-alt: #ebe2c8;      /* lifted cream surface */
+  --paper-soft: #e0d6b9;     /* card / elevation */
+  --ink: #1a1714;            /* primary text — deep warm black */
+  --ink-2: #4a4339;           /* secondary text */
+  --muted: #7d756a;           /* meta / labels */
+  --line: #d4c9ad;            /* hairlines */
+  --line-strong: #b9ac8a;     /* stronger dividers */
+  --accent: #8c6a2a;          /* deeper gold — readable on cream */
+  --accent-deep: #6b5021;     /* hover / pressed */
+  --accent-soft: #a3823f;     /* highlight gold */
+
+  color-scheme: light;
+}
+
+/* honour OS preference only if the user has not chosen explicitly */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --paper: #f3ebd6;
+    --paper-alt: #ebe2c8;
+    --paper-soft: #e0d6b9;
+    --ink: #1a1714;
+    --ink-2: #4a4339;
+    --muted: #7d756a;
+    --line: #d4c9ad;
+    --line-strong: #b9ac8a;
+    --accent: #8c6a2a;
+    --accent-deep: #6b5021;
+    --accent-soft: #a3823f;
+    color-scheme: light;
+  }
+}
+
+/* type tokens */
+:root {
   --font-display: 'Fraunces', 'Cormorant Garamond', 'Didot', 'Times New Roman', serif;
   --font-sans: 'Instrument Sans', 'Söhne', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
 
-  /* layout */
   --page-max: 1440px;
   --page-gutter: clamp(1.25rem, 3vw, 3rem);
   --radius: 0;
-
-  color-scheme: dark;
 }
 
 /* reset */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; background: var(--paper); }
+html {
+  scroll-behavior: smooth;
+  background: var(--paper);
+  transition: background-color 0.4s ease;
+}
 
 body {
   font-family: var(--font-sans);
@@ -48,6 +101,7 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 /* Display typography */
@@ -232,7 +286,7 @@ input, textarea {
   font-weight: 400;
   border: 1px solid var(--line-strong);
   border-radius: 0;
-  transition: border-color 0.25s ease, background 0.25s ease;
+  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
 }
 
 input::placeholder, textarea::placeholder { color: var(--muted); }
@@ -280,7 +334,7 @@ input:focus, textarea:focus {
 /* global selection */
 ::selection { background: var(--accent); color: var(--paper); }
 
-/* scrollbars on dark */
+/* scrollbars adapt to theme */
 @supports (scrollbar-color: auto) {
   html { scrollbar-color: var(--line-strong) var(--paper); }
 }

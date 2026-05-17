@@ -1,5 +1,13 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { read, getGallery, upsertGallery, removePhotoFromGallery, deleteGallery } from '$lib/server/galleries-store.js';
+import {
+  read,
+  getGallery,
+  upsertGallery,
+  removePhotoFromGallery,
+  deleteGallery,
+  setGalleryPassword,
+  isProtected,
+} from '$lib/server/galleries-store.js';
 import { deleteObject, publicUrl } from '$lib/server/r2.js';
 
 export const load = async ({ params }) => {
@@ -14,6 +22,7 @@ export const load = async ({ params }) => {
       date: gallery.date || null,
       h1: gallery.h1 || null,
       photos: gallery.photos || [],
+      protected: isProtected(gallery),
     },
     categories: data.categories,
     publicBase: publicUrl(),
@@ -49,5 +58,22 @@ export const actions = {
     if (!g) throw redirect(303, '/admin/galerias');
     await deleteGallery(params.slug);
     throw redirect(303, '/admin/galerias');
+  },
+
+  setPassword: async ({ request, params }) => {
+    const form = await request.formData();
+    const password = (form.get('password') || '').toString();
+    if (password.length < 4) return fail(400, { error: 'La contraseña debe tener al menos 4 caracteres.' });
+    try {
+      await setGalleryPassword(params.slug, password);
+    } catch (e) {
+      return fail(400, { error: e.message });
+    }
+    return { ok: true, passwordChanged: true };
+  },
+
+  clearPassword: async ({ params }) => {
+    await setGalleryPassword(params.slug, null);
+    return { ok: true, passwordCleared: true };
   },
 };

@@ -2,6 +2,7 @@
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
   import { brand } from '$lib/logos.js';
+  import ThemeToggle from './ThemeToggle.svelte';
 
   let menuOpen = false;
   let scrolled = false;
@@ -30,7 +31,10 @@
         <li><a href="/#servicios" on:click={() => (menuOpen = false)}>Servicios</a></li>
         <li><a href="/galeria" class:active={$page.url.pathname.startsWith('/galeria')} on:click={() => (menuOpen = false)}>Portafolio</a></li>
         <li><a href="/#contacto" on:click={() => (menuOpen = false)}>Contacto</a></li>
+        <li class="nav-toggle-mobile"><ThemeToggle /></li>
       </ul>
+
+      <div class="nav-extra"><ThemeToggle compact /></div>
 
       <button class="menu-toggle" on:click={toggleMenu} aria-label="Abrir menú" aria-expanded={menuOpen}>
         <span class:open={menuOpen}></span>
@@ -94,6 +98,12 @@
   }
 
   .nav-meta { display: none; }
+  .nav-toggle-mobile { display: none; }
+
+  .nav-extra {
+    display: inline-flex;
+    align-items: center;
+  }
 
   .nav-links a {
     font-family: var(--font-sans);
@@ -176,6 +186,9 @@
       position: relative;
       z-index: 2;
     }
+
+    .nav-extra { display: none; }
+    .nav-toggle-mobile { display: block; margin-top: 1.5rem; }
 
     .brand-mark { height: 84px; }
 

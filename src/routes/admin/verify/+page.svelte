@@ -6,7 +6,7 @@
   <div class="card">
     <span class="eyebrow">Verificación</span>
     <h1>Ingresá el código</h1>
-    <p class="copy">Acabamos de mandarte un correo con un código de 6 dígitos.</p>
+    <p class="copy">Acabamos de mandarte un correo con un código de 6 dígitos. Después de validarlo vas a poder elegir o cambiar tu contraseña.</p>
 
     <form method="POST">
       <input
@@ -22,7 +22,7 @@
 
     {#if form?.error}<p class="error">{form.error}</p>{/if}
 
-    <p class="help">¿No te llegó? <a href="/admin/login">Pedir uno nuevo</a>.</p>
+    <p class="help">¿No te llegó? <a href="/admin/forgot">Pedir uno nuevo</a>.</p>
   </div>
 </section>
 

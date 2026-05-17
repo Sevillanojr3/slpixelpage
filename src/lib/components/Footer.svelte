@@ -69,11 +69,11 @@
 
 <style>
   .footer {
-    background: #050403;
-    color: var(--ink);
+    background: var(--paper-fixed-deep);
+    color: var(--ink-fixed-light);
     padding: clamp(4rem, 7vw, 6rem) 0 2.25rem;
     margin-top: 0;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--line-fixed-dark);
   }
 
   .top {
@@ -95,7 +95,7 @@
 
   .cta { text-align: right; }
   .cta h3 {
-    color: var(--ink);
+    color: var(--ink-fixed-light);
     font-size: clamp(1.4rem, 2.2vw, 2.1rem);
     font-weight: 300;
     margin-bottom: 0.65rem;
@@ -105,18 +105,18 @@
     font-family: var(--font-sans);
     font-size: 1.05rem;
     letter-spacing: 0.05em;
-    color: var(--accent);
-    border-bottom: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    color: var(--accent-fixed);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-fixed) 50%, transparent);
     padding-bottom: 3px;
     transition: color 0.3s ease, border-color 0.3s ease;
   }
 
-  .email:hover { color: var(--accent-soft); border-bottom-color: var(--accent-soft); opacity: 1; }
+  .email:hover { color: var(--accent-fixed-soft); border-bottom-color: var(--accent-fixed-soft); opacity: 1; }
 
   .rule-light {
     height: 1px;
     border: 0;
-    background: var(--line);
+    background: var(--line-fixed-dark);
   }
 
   .columns {
@@ -130,19 +130,19 @@
   .col-wide { grid-column: span 6; }
 
   .col .label {
-    color: var(--accent);
+    color: var(--accent-fixed);
     font-size: 0.66rem;
   }
 
   .col ul { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
-  .col ul li { color: var(--ink-2); font-size: 0.92rem; }
+  .col ul li { color: var(--ink-fixed-light-2); font-size: 0.92rem; }
   .col a { color: inherit; border-bottom: 1px solid transparent; padding-bottom: 1px; transition: color 0.3s ease, border-color 0.3s ease; }
-  .col a:hover { color: var(--accent); border-bottom-color: var(--accent); opacity: 1; }
+  .col a:hover { color: var(--accent-fixed); border-bottom-color: var(--accent-fixed); opacity: 1; }
 
   .small {
     font-size: 0.88rem;
     line-height: 1.6;
-    color: var(--ink-2);
+    color: var(--ink-fixed-light-2);
     max-width: 46ch;
   }
 
@@ -150,10 +150,10 @@
     display: flex;
     justify-content: space-between;
     padding-top: 1.5rem;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--line-fixed-dark);
   }
 
-  .bottom .numeral { color: var(--muted); }
+  .bottom .numeral { color: var(--muted-fixed); }
 
   @media (max-width: 860px) {
     .top { grid-template-columns: 1fr; align-items: start; }

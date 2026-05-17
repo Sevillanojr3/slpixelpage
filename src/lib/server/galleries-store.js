@@ -1,6 +1,28 @@
+import crypto from 'node:crypto';
 import { getJson, putJson } from './r2.js';
 
 const KEY = 'data/galleries.json';
+
+function scrypt(password, salt) {
+  return crypto.scryptSync(String(password), salt, 64).toString('base64');
+}
+
+export function hashGalleryPassword(password) {
+  const salt = crypto.randomBytes(16).toString('base64');
+  return { salt, passwordHash: scrypt(password, salt) };
+}
+
+export function verifyGalleryPassword(gallery, password) {
+  if (!gallery?.passwordHash || !gallery?.salt) return false;
+  if (typeof password !== 'string' || !password) return false;
+  const candidate = scrypt(password, gallery.salt);
+  const a = Buffer.from(candidate);
+  const b = Buffer.from(gallery.passwordHash);
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+export const isProtected = (g) => Boolean(g?.passwordHash);
 
 const DEFAULT_CATEGORIES = [
   { id: 'eventos', label: 'Eventos' },
@@ -85,10 +107,32 @@ export async function upsertGallery(gallery) {
   if (idx >= 0) {
     data.galleries[idx] = { ...data.galleries[idx], ...gallery };
   } else {
-    data.galleries.push({ photos: [], ...gallery });
+    data.galleries.push({
+      photos: [],
+      createdAt: new Date().toISOString(),
+      ...gallery,
+    });
   }
   await write(data);
   return data.galleries.find((g) => g.slug === gallery.slug) || null;
+}
+
+export async function setGalleryPassword(slug, password) {
+  const data = await read();
+  const g = data.galleries.find((x) => x.slug === slug);
+  if (!g) throw new Error('Galería no encontrada.');
+  if (!password) {
+    delete g.passwordHash;
+    delete g.salt;
+  } else {
+    if (typeof password !== 'string' || password.length < 4) {
+      throw new Error('La contraseña debe tener al menos 4 caracteres.');
+    }
+    const { passwordHash, salt } = hashGalleryPassword(password);
+    g.passwordHash = passwordHash;
+    g.salt = salt;
+  }
+  await write(data);
 }
 
 export async function deleteGallery(slug) {

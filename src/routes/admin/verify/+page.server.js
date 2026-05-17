@@ -1,5 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { verifyCode, createSession, setSessionCookie, adminEmail } from '$lib/server/admin-auth.js';
+import {
+  verifyCode,
+  createResetToken,
+  setResetCookie,
+  adminEmail,
+} from '$lib/server/admin-auth.js';
 
 export const actions = {
   default: async ({ request, cookies }) => {
@@ -13,8 +18,7 @@ export const actions = {
     if (!verifyCode(email, code)) {
       return fail(401, { error: 'Código inválido o vencido.' });
     }
-    const token = createSession(email);
-    setSessionCookie(cookies, token);
-    throw redirect(303, '/admin/galerias');
+    setResetCookie(cookies, createResetToken(email));
+    throw redirect(303, '/admin/password?from=reset');
   },
 };

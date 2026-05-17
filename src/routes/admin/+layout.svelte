@@ -18,6 +18,7 @@
       <nav class="admin-nav">
         <a href="/admin/galerias" class:active={$page.url.pathname.startsWith('/admin/galerias')}>Galerías</a>
         <a href="/admin/categorias" class:active={$page.url.pathname.startsWith('/admin/categorias')}>Categorías</a>
+        <a href="/admin/password" class:active={$page.url.pathname.startsWith('/admin/password')}>Contraseña</a>
       </nav>
       <div class="admin-user">
         <span>{admin.email}</span>

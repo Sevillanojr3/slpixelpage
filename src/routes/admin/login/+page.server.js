@@ -1,37 +1,27 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { issueCode, adminEmail } from '$lib/server/admin-auth.js';
-import { sendMail } from '$lib/server/email.js';
+import { createSession, setSessionCookie, adminEmail } from '$lib/server/admin-auth.js';
+import { hasPassword, verifyPassword } from '$lib/server/admin-store.js';
+
+export const load = async () => {
+  return {
+    hasPassword: await hasPassword(),
+    adminEmail: adminEmail(),
+  };
+};
 
 export const actions = {
-  default: async ({ request }) => {
+  default: async ({ request, cookies }) => {
+    if (!(await hasPassword())) {
+      // No password set yet — push the user through the code path so they can set one.
+      throw redirect(303, '/admin/forgot?setup=1');
+    }
     const form = await request.formData();
-    const submittedEmail = (form.get('email') || '').toString().trim().toLowerCase();
-    const target = adminEmail();
-    if (submittedEmail && submittedEmail !== target.toLowerCase()) {
-      return fail(403, { error: 'Correo no autorizado.' });
-    }
-    let code;
-    try {
-      code = issueCode(target);
-    } catch (e) {
-      return fail(429, { error: e.message });
-    }
-    try {
-      await sendMail({
-        to: target,
-        subject: `Código de acceso al admin · ${code}`,
-        text: `Tu código de acceso al panel admin es: ${code}\n\nVence en 10 minutos. Si no fuiste vos, ignorá este correo.`,
-        html: `<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;padding:24px;background:#f5f2ec;color:#0d0d0b">
-          <h2 style="font-weight:500;margin:0 0 1rem">Código de acceso · SL Pixel Admin</h2>
-          <p style="margin:0 0 1.5rem">Usá este código en la página de verificación. Vence en 10 minutos.</p>
-          <div style="font-family:Menlo,Monaco,monospace;font-size:32px;letter-spacing:0.4em;background:#fff;padding:1.25rem;text-align:center;border:1px solid #d6cfc3">${code}</div>
-          <p style="margin:1.5rem 0 0;color:#7a756c;font-size:13px">Si no fuiste vos, ignorá este correo.</p>
-        </div>`,
-      });
-    } catch (e) {
-      console.error('[admin/login] sendMail failed:', e.message);
-      return fail(502, { error: 'No pudimos enviar el correo. Probá de nuevo.' });
-    }
-    throw redirect(303, '/admin/verify');
+    const password = (form.get('password') || '').toString();
+    if (!password) return fail(400, { error: 'Ingresá tu contraseña.' });
+    const ok = await verifyPassword(password);
+    if (!ok) return fail(401, { error: 'Contraseña incorrecta.' });
+    const token = createSession(adminEmail());
+    setSessionCookie(cookies, token);
+    throw redirect(303, '/admin/galerias');
   },
 };

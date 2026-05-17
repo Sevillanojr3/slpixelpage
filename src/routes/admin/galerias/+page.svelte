@@ -4,6 +4,7 @@
   export let form;
 
   let creating = false;
+  let createAccess = 'public';
   $: ({ galleries, categories } = data);
 
   function badge(cat) {
@@ -51,6 +52,19 @@
           <input name="date" type="date" />
         </label>
       </div>
+      <div class="row">
+        <label>
+          <span>Acceso</span>
+          <select name="access" bind:value={createAccess}>
+            <option value="public">Libre · pública</option>
+            <option value="protected">Con contraseña</option>
+          </select>
+        </label>
+        <label>
+          <span>Contraseña {createAccess === 'protected' ? '(requerida)' : '(no se usa)'}</span>
+          <input name="password" type="text" placeholder="Mínimo 4 caracteres" disabled={createAccess !== 'protected'} />
+        </label>
+      </div>
       {#if form?.error}<p class="error">{form.error}</p>{/if}
       <button type="submit" class="btn">Crear galería</button>
     </form>
@@ -71,6 +85,9 @@
       <tr>
         <td>
           <a href={`/admin/galerias/${g.slug}`} class="title">{g.title}</a>
+          {#if g.protected}
+            <span class="lock-pill" title="Galería con contraseña">🔒 Protegida</span>
+          {/if}
           <div class="meta">/{g.slug}{g.date ? ` · ${g.date}` : ''}</div>
         </td>
         <td>
@@ -140,6 +157,12 @@
   .title { color: #0d0d0b; font-weight: 500; text-decoration: none; }
   .title:hover { text-decoration: underline; }
   .meta { color: #7a756c; font-size: 0.78rem; margin-top: 0.2rem; font-family: Menlo, Monaco, monospace; }
+  .lock-pill {
+    display: inline-block; margin-left: 0.5rem; padding: 0.05rem 0.45rem;
+    background: #fff7e0; border: 1px solid #d8c270; color: #7a5a00;
+    font-size: 0.7rem; letter-spacing: 0.06em; border-radius: 999px;
+    vertical-align: middle;
+  }
   .num { font-family: Menlo, Monaco, monospace; }
   .actions { display: flex; gap: 1rem; align-items: center; }
   .actions a { color: #0d0d0b; font-size: 0.85rem; }

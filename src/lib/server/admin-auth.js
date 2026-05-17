@@ -3,7 +3,9 @@ import { envVar } from './env.js';
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
+const RESET_TTL_MS = 15 * 60 * 1000;
 const COOKIE_NAME = 'admin_session';
+const RESET_COOKIE_NAME = 'admin_reset';
 
 const pendingCodes = new Map();
 const lastSent = new Map();
@@ -51,18 +53,21 @@ function sign(payload) {
     .digest('base64url');
 }
 
-export function createSession(email) {
-  const payload = JSON.stringify({ email, exp: Date.now() + SESSION_TTL_MS });
+function makeToken(data, ttlMs) {
+  const payload = JSON.stringify({ ...data, exp: Date.now() + ttlMs });
   const b64 = Buffer.from(payload).toString('base64url');
   return `${b64}.${sign(b64)}`;
 }
 
-export function verifySession(token) {
+function readToken(token) {
   if (!token || typeof token !== 'string') return null;
   const [b64, sig] = token.split('.');
   if (!b64 || !sig) return null;
   const expected = sign(b64);
-  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return null;
+  if (!crypto.timingSafeEqual(a, b)) return null;
   try {
     const data = JSON.parse(Buffer.from(b64, 'base64url').toString('utf8'));
     if (!data.exp || Date.now() > data.exp) return null;
@@ -70,6 +75,16 @@ export function verifySession(token) {
   } catch {
     return null;
   }
+}
+
+export function createSession(email) {
+  return makeToken({ email }, SESSION_TTL_MS);
+}
+
+export function verifySession(token) {
+  const data = readToken(token);
+  if (!data || !data.email) return null;
+  return data;
 }
 
 export function setSessionCookie(cookies, token) {
@@ -86,4 +101,29 @@ export function clearSessionCookie(cookies) {
   cookies.delete(COOKIE_NAME, { path: '/' });
 }
 
+export function createResetToken(email) {
+  return makeToken({ email, kind: 'reset' }, RESET_TTL_MS);
+}
+
+export function verifyResetToken(token) {
+  const data = readToken(token);
+  if (!data || data.kind !== 'reset' || !data.email) return null;
+  return data;
+}
+
+export function setResetCookie(cookies, token) {
+  cookies.set(RESET_COOKIE_NAME, token, {
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: RESET_TTL_MS / 1000,
+  });
+}
+
+export function clearResetCookie(cookies) {
+  cookies.delete(RESET_COOKIE_NAME, { path: '/' });
+}
+
 export const SESSION_COOKIE = COOKIE_NAME;
+export const RESET_COOKIE = RESET_COOKIE_NAME;

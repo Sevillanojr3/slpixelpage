@@ -3,10 +3,11 @@
   import { thumbUrl, fullUrl, photoKey } from '$lib/images.js';
 
   export let data;
-  const { gallery } = data;
+  export let form;
+  $: ({ gallery, locked } = data);
 
   const cleanTitle = (t) => (t || '').replace(/\s+de SLPixel$/i, '').trim();
-  const title = cleanTitle(gallery.title);
+  $: title = cleanTitle(gallery.title);
 
   let lightboxIdx = -1;
 
@@ -30,11 +31,10 @@
 
   onMount(() => () => (document.body.style.overflow = ''));
 
-  $: current = lightboxIdx >= 0 ? gallery.photos[lightboxIdx] : null;
+  $: current = !locked && lightboxIdx >= 0 ? gallery.photos[lightboxIdx] : null;
   $: humanDate = gallery.date
     ? new Date(gallery.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
     : '';
-  $: galleryIndex = gallery.galleryIndex || null;
 </script>
 
 <svelte:head>
@@ -44,6 +44,32 @@
 
 <svelte:window on:keydown={onKey} />
 
+{#if locked}
+  <section class="locked-section">
+    <div class="container locked-grid">
+      <div class="locked-meta">
+        <a href="/galeria" class="back">
+          <span class="arrow">←</span>
+          <span class="back-label">Volver al índice</span>
+        </a>
+        <span class="label">Galería protegida</span>
+        <h1 class="head-title">{title}</h1>
+        <p class="locked-copy">
+          Esta galería es privada. Ingresá la contraseña que te compartimos para verla.
+        </p>
+      </div>
+
+      <form method="POST" action="?/unlock" class="lock-form">
+        <label>
+          <span>Contraseña</span>
+          <input name="password" type="password" autocomplete="current-password" required autofocus />
+        </label>
+        {#if form?.error}<p class="lock-error">{form.error}</p>{/if}
+        <button type="submit" class="btn">Desbloquear galería</button>
+      </form>
+    </div>
+  </section>
+{:else}
 <!-- ===== Header ===== -->
 <section class="g-head">
   <div class="container">
@@ -104,6 +130,7 @@
     <a href="/galeria" class="link-arrow">Siguiente portafolio</a>
   </div>
 </section>
+{/if}
 
 <!-- ===== Lightbox ===== -->
 {#if current}
@@ -138,6 +165,69 @@
 {/if}
 
 <style>
+  /* ============ LOCKED ============ */
+  .locked-section {
+    padding: clamp(4rem, 8vw, 7rem) 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .locked-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: center;
+  }
+  .locked-meta .label { display: block; margin: 1.5rem 0 0.5rem; color: var(--accent); }
+  .locked-copy {
+    margin-top: 1.25rem;
+    max-width: 42ch;
+    color: var(--ink-2);
+    line-height: 1.65;
+  }
+  .lock-form {
+    background: var(--paper-alt);
+    border: 1px solid var(--line-strong);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .lock-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .lock-form label span {
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .lock-form input {
+    padding: 0.85rem 1rem;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+  }
+  .lock-form input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--paper-soft);
+  }
+  .lock-form .btn { justify-content: center; width: 100%; }
+  .lock-error {
+    color: #b00020;
+    background: color-mix(in srgb, #b00020 12%, transparent);
+    border: 1px solid color-mix(in srgb, #b00020 35%, transparent);
+    padding: 0.6rem 0.85rem;
+    font-size: 0.85rem;
+  }
+  @media (max-width: 800px) {
+    .locked-grid { grid-template-columns: 1fr; }
+  }
+
   /* ============ HEADER ============ */
   .g-head {
     padding: clamp(3rem, 6vw, 5rem) 0 clamp(2rem, 4vw, 3.5rem);
@@ -292,30 +382,30 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.25rem clamp(1rem, 3vw, 2.5rem);
-    border-bottom: 1px solid color-mix(in srgb, var(--paper) 12%, transparent);
-    color: color-mix(in srgb, var(--paper) 80%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--ink-fixed-light) 12%, transparent);
+    color: color-mix(in srgb, var(--ink-fixed-light) 80%, transparent);
   }
 
-  .lb-bar .numeral { color: color-mix(in srgb, var(--paper) 90%, transparent); font-size: 0.8rem; }
-  .lb-bar .label-paper { font-size: 0.7rem; letter-spacing: 0.18em; color: color-mix(in srgb, var(--paper) 70%, transparent); }
+  .lb-bar .numeral { color: color-mix(in srgb, var(--ink-fixed-light) 90%, transparent); font-size: 0.8rem; }
+  .lb-bar .label-paper { font-size: 0.7rem; letter-spacing: 0.18em; color: color-mix(in srgb, var(--ink-fixed-light) 70%, transparent); }
 
   .lb-close {
     font-family: var(--font-sans);
     font-size: 0.72rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--paper);
+    color: var(--ink-fixed-light);
     background: transparent;
-    border: 1px solid color-mix(in srgb, var(--paper) 30%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ink-fixed-light) 30%, transparent);
     padding: 0.5rem 0.9rem;
     cursor: pointer;
     transition: background 0.3s ease, border-color 0.3s ease;
   }
 
   .lb-close:hover {
-    background: var(--paper);
-    color: var(--ink);
-    border-color: var(--paper);
+    background: var(--ink-fixed-light);
+    color: var(--paper-fixed-dark);
+    border-color: var(--ink-fixed-light);
   }
 
   .lb-img {
@@ -336,8 +426,8 @@
     align-items: center;
     gap: 0.6rem;
     background: rgba(255, 255, 255, 0.06);
-    color: var(--ink);
-    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    color: var(--ink-fixed-light);
+    border: 1px solid color-mix(in srgb, var(--accent-fixed) 40%, transparent);
     border-radius: 999px;
     cursor: pointer;
     padding: 0.85rem 1.25rem;
@@ -348,13 +438,13 @@
 
   .lb-nav:hover {
     opacity: 1;
-    background: color-mix(in srgb, var(--accent) 18%, transparent);
-    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent-fixed) 18%, transparent);
+    border-color: var(--accent-fixed);
   }
   .lb-nav .lb-arrow {
     font-size: 1.8rem;
     line-height: 1;
-    color: var(--accent);
+    color: var(--accent-fixed);
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
   }
 

@@ -89,16 +89,21 @@
                 <span class="numeral">— {g.count}</span>
               </div>
 
-              <div class="g-img">
+              <div class="g-img" class:locked={g.protected}>
                 {#if g.cover}
                   <img src={thumbUrl(g.cover, g.slug)} alt={g.title} loading="lazy" />
+                {:else if g.protected}
+                  <div class="lock-cover">
+                    <span class="lock-icon" aria-hidden="true">🔒</span>
+                    <span class="lock-text">Galería protegida</span>
+                  </div>
                 {/if}
               </div>
 
               <div class="g-info">
-                <span class="label">{g.category} · {year(g.date)}</span>
+                <span class="label">{g.category} · {year(g.date)}{g.protected ? ' · 🔒' : ''}</span>
                 <h3>{g.title}</h3>
-                <span class="link-sub">Ver portafolio <span class="arrow">→</span></span>
+                <span class="link-sub">{g.protected ? 'Ingresar contraseña' : 'Ver portafolio'} <span class="arrow">→</span></span>
               </div>
             </a>
           </li>
@@ -269,6 +274,33 @@
   }
 
   .g-link:hover .g-img img { transform: scale(1.04); }
+
+  .g-img.locked {
+    background:
+      repeating-linear-gradient(
+        135deg,
+        var(--paper-alt) 0 14px,
+        var(--paper-soft) 14px 28px
+      );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lock-cover {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    color: var(--ink-2);
+  }
+  .lock-icon { font-size: 2.2rem; }
+  .lock-text {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
 
   .g-info {
     padding-top: 1.2rem;

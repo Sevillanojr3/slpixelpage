@@ -48,6 +48,23 @@
   // Marquee list of all gallery titles for the ticker band
   const marqueeTitles = all.map((g) => g.title);
 
+  // Latest galleries — newest first, by createdAt (fallback to date), max 6
+  function ts(g) {
+    return Date.parse(g.createdAt || g.date || '') || 0;
+  }
+  const latest = [...(data.galleries || [])]
+    .filter((g) => (g.photos || []).length > 0 || g.protected)
+    .map((g) => ({ ...g, title: cleanTitle(g.title) }))
+    .sort((a, b) => ts(b) - ts(a))
+    .slice(0, 6);
+
+  function shortDate(iso) {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+    } catch { return ''; }
+  }
+
   let mounted = false;
   let activeHero = 0;
   let heroPaused = false;
@@ -160,6 +177,47 @@
     {/each}
   </div>
 </section>
+
+<!-- =============== LATEST GALLERIES =============== -->
+{#if latest.length > 0}
+  <section class="latest section">
+    <div class="container">
+      <div class="latest-head">
+        <div>
+          <span class="label">Recién publicadas</span>
+          <h2>Últimas galerías.</h2>
+        </div>
+        <a href="/galeria" class="link-arrow desktop-only">Ver todas →</a>
+      </div>
+
+      <ul class="latest-grid">
+        {#each latest as g, i (g.slug)}
+          <li class="l-card">
+            <a href={`/galeria/${g.slug}`} class="l-link">
+              <div class="l-img" class:locked={g.protected}>
+                {#if g.cover}
+                  <img src={thumbUrl(g.cover, g.slug)} alt={g.title} loading="lazy" />
+                {:else}
+                  <div class="l-lock">
+                    <span aria-hidden="true">🔒</span>
+                    <span class="lock-label">Protegida</span>
+                  </div>
+                {/if}
+              </div>
+              <div class="l-info">
+                <span class="numeral">{shortDate(g.createdAt || g.date) || '—'}{g.protected ? ' · 🔒' : ''}</span>
+                <h3>{g.title}</h3>
+                <span class="label l-meta">{g.category || 'archivo'} · {(g.photos || []).length} fotos</span>
+              </div>
+            </a>
+          </li>
+        {/each}
+      </ul>
+
+      <a href="/galeria" class="link-arrow mobile-only">Ver todas →</a>
+    </div>
+  </section>
+{/if}
 
 <!-- =============== ABOUT / INTRO =============== -->
 <section id="sobre-mi" class="section about">
@@ -344,15 +402,15 @@
     height: min(100vh, 960px);
     min-height: 640px;
     overflow: hidden;
-    color: var(--ink);
-    background: var(--paper);
+    color: var(--ink-fixed-light);
+    background: var(--paper-fixed-dark);
   }
 
   .hero-image {
     position: absolute;
     inset: 0;
     overflow: hidden;
-    background: var(--paper);
+    background: var(--paper-fixed-dark);
   }
 
   .hero-image img {
@@ -404,7 +462,7 @@
   .hero-dot {
     width: 26px;
     height: 2px;
-    background: color-mix(in srgb, var(--ink) 30%, transparent);
+    background: color-mix(in srgb, var(--ink-fixed-light) 30%, transparent);
     border: 0;
     padding: 0;
     cursor: pointer;
@@ -412,7 +470,7 @@
   }
 
   .hero-dot.on {
-    background: var(--accent);
+    background: var(--accent-fixed);
     width: 44px;
   }
 
@@ -445,8 +503,8 @@
     animation: fadeIn 0.8s ease 0.15s forwards;
   }
 
-  .hero-top .label { color: var(--accent); }
-  .hero-top .numeral { color: color-mix(in srgb, var(--ink) 65%, transparent); }
+  .hero-top .label { color: var(--accent-fixed); }
+  .hero-top .numeral { color: color-mix(in srgb, var(--ink-fixed-light) 65%, transparent); }
 
   .hero-center {
     align-self: end;
@@ -459,7 +517,7 @@
     font-weight: 300;
     font-size: clamp(2.6rem, 7.5vw, 6.8rem);
     line-height: 1.0;
-    color: var(--ink);
+    color: var(--ink-fixed-light);
     letter-spacing: -0.025em;
     font-variation-settings: 'opsz' 144, 'SOFT' 45, 'WONK' 1;
   }
@@ -472,7 +530,7 @@
     font-style: italic;
     font-weight: 300;
     font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
-    color: var(--accent);
+    color: var(--accent-fixed);
   }
 
   .hero-bottom {
@@ -485,7 +543,7 @@
     max-width: 38ch;
     font-size: clamp(0.95rem, 1.2vw, 1.1rem);
     line-height: 1.65;
-    color: color-mix(in srgb, var(--ink) 86%, transparent);
+    color: color-mix(in srgb, var(--ink-fixed-light) 86%, transparent);
   }
 
   .hero-actions {
@@ -500,15 +558,15 @@
     font-size: 0.74rem;
     letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: color-mix(in srgb, var(--ink) 75%, transparent);
-    border-bottom: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    color: color-mix(in srgb, var(--ink-fixed-light) 75%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-fixed) 50%, transparent);
     padding-bottom: 3px;
     transition: color 0.3s ease, border-color 0.3s ease;
   }
 
   .hero-sub:hover {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
+    color: var(--accent-fixed);
+    border-bottom-color: var(--accent-fixed);
     opacity: 1;
   }
 
@@ -788,6 +846,106 @@
 
   .desktop-only { display: inline-flex; }
   .mobile-only { display: none; }
+
+  /* =================== LATEST =================== */
+  .latest {
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .latest-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .latest-head h2 {
+    font-size: clamp(1.8rem, 4.2vw, 3.5rem);
+    margin-top: 0.5rem;
+  }
+
+  .latest-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem 1.5rem;
+  }
+
+  .l-card { display: block; }
+  .l-link { display: block; color: var(--ink); }
+  .l-link:hover { opacity: 1; }
+
+  .l-img {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--paper-alt);
+    border: 1px solid var(--line);
+    position: relative;
+  }
+
+  .l-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .l-link:hover .l-img img { transform: scale(1.045); }
+
+  .l-img.locked {
+    background:
+      repeating-linear-gradient(135deg, var(--paper-alt) 0 14px, var(--paper-soft) 14px 28px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .l-lock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ink-2);
+    font-size: 1.8rem;
+  }
+  .lock-label {
+    font-family: var(--font-sans);
+    font-size: 0.66rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .l-info {
+    padding-top: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .l-info h3 {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(1.1rem, 1.6vw, 1.5rem);
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+
+  .l-link:hover .l-info h3 { color: var(--accent); }
+
+  .l-meta {
+    color: var(--muted);
+    font-size: 0.6rem;
+  }
+
+  @media (max-width: 900px) {
+    .latest-head { flex-direction: column; align-items: flex-start; margin-bottom: 2rem; }
+    .latest-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 560px) {
+    .latest-grid { grid-template-columns: 1fr; }
+  }
 
   /* =================== CTA =================== */
   .cta {

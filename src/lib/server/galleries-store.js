@@ -24,6 +24,7 @@ export function verifyGalleryPassword(gallery, password) {
 
 export const isProtected = (g) => Boolean(g?.passwordHash);
 export const isHidden = (g) => Boolean(g?.hidden);
+export const isChild = (g) => Boolean(g?.parent);
 
 const DEFAULT_CATEGORIES = [
   { id: 'eventos', label: 'Eventos' },
@@ -39,9 +40,13 @@ const DEFAULT_DATA = {
 
 function normalize(raw) {
   if (!raw) return { ...DEFAULT_DATA };
+  const galleries = (raw.galleries || []).map((g) => ({
+    ...g,
+    parent: g.parent || null,
+  }));
   return {
     base: raw.base || DEFAULT_DATA.base,
-    galleries: raw.galleries || [],
+    galleries,
     categories: raw.categories || DEFAULT_CATEGORIES,
   };
 }
@@ -102,6 +107,14 @@ export async function getGallery(slug) {
   return (await read()).galleries.find((g) => g.slug === slug) || null;
 }
 
+export async function listChildren(parentSlug) {
+  return (await read()).galleries.filter((g) => g.parent === parentSlug);
+}
+
+export async function listTopLevel() {
+  return (await read()).galleries.filter((g) => !g.parent);
+}
+
 export async function upsertGallery(gallery) {
   const data = await read();
   const idx = data.galleries.findIndex((g) => g.slug === gallery.slug);
@@ -122,6 +135,9 @@ export async function setGalleryPassword(slug, password) {
   const data = await read();
   const g = data.galleries.find((x) => x.slug === slug);
   if (!g) throw new Error('Galería no encontrada.');
+  if (g.parent) {
+    throw new Error('Una subgalería hereda la contraseña del padre; no se puede asignar una propia.');
+  }
   if (!password) {
     delete g.passwordHash;
     delete g.salt;
@@ -138,7 +154,37 @@ export async function setGalleryPassword(slug, password) {
 
 export async function deleteGallery(slug) {
   const data = await read();
+  const hasChildren = data.galleries.some((g) => g.parent === slug);
+  if (hasChildren) {
+    throw new Error('La galería tiene subgalerías. Eliminalas o moverlas antes.');
+  }
   data.galleries = data.galleries.filter((g) => g.slug !== slug);
+  await write(data);
+}
+
+export async function setGalleryParent(slug, parentSlug) {
+  const data = await read();
+  const g = data.galleries.find((x) => x.slug === slug);
+  if (!g) throw new Error('Galería no encontrada.');
+  if (!parentSlug) {
+    g.parent = null;
+    await write(data);
+    return;
+  }
+  if (parentSlug === slug) throw new Error('Una galería no puede ser su propio padre.');
+  const parent = data.galleries.find((x) => x.slug === parentSlug);
+  if (!parent) throw new Error('Galería padre no encontrada.');
+  if (parent.parent) {
+    throw new Error('Solo se permiten 2 niveles: el padre elegido ya es una subgalería.');
+  }
+  const hasChildren = data.galleries.some((x) => x.parent === slug);
+  if (hasChildren) {
+    throw new Error('Esta galería ya tiene subgalerías; no puede convertirse en subgalería.');
+  }
+  if (g.passwordHash) {
+    throw new Error('Quitá la contraseña antes de convertirla en subgalería (heredará del padre).');
+  }
+  g.parent = parentSlug;
   await write(data);
 }
 

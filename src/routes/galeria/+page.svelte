@@ -91,10 +91,13 @@
 
               <div class="g-img">
                 {#if g.cover}
-                  <img src={thumbUrl(g.cover, g.slug)} alt={g.title} loading="lazy" />
+                  <img src={thumbUrl(g.cover, g.coverSlug || g.slug)} alt={g.title} loading="lazy" />
                 {/if}
                 {#if g.protected}
-                  <span class="dl-pill" title="Descargas con contraseña">🔒 Sin descargas</span>
+                  <span class="dl-pill" title="Acceso con contraseña">🔒 Privada</span>
+                {/if}
+                {#if g.childrenCount > 0}
+                  <span class="sub-pill" title="Galería con subgalerías">📁 {g.childrenCount} capítulos</span>
                 {/if}
               </div>
 
@@ -285,6 +288,21 @@
     font-family: var(--font-sans);
     font-size: 0.62rem;
     letter-spacing: 0.18em;
+    text-transform: uppercase;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .sub-pill {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
+    background: color-mix(in srgb, var(--paper) 78%, transparent);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    padding: 0.2rem 0.55rem;
+    font-family: var(--font-sans);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);

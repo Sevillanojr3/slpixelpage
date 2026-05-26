@@ -1,5 +1,10 @@
-import { error, fail } from '@sveltejs/kit';
-import { getGallery, verifyGalleryPassword, isProtected } from '$lib/server/galleries-store.js';
+import { error, fail, redirect } from '@sveltejs/kit';
+import {
+  getGallery,
+  listChildren,
+  verifyGalleryPassword,
+  isProtected,
+} from '$lib/server/galleries-store.js';
 import { hasAccess, setAccessCookie } from '$lib/server/gallery-access.js';
 
 export const prerender = false;
@@ -9,18 +14,54 @@ function sanitize(g) {
   return rest;
 }
 
+function childSummary(child) {
+  const photos = child.photos || [];
+  return {
+    slug: child.slug,
+    title: child.title || child.slug,
+    count: photos.length,
+    cover: photos[0] || null,
+    date: child.date || null,
+  };
+}
+
 export async function load({ params, cookies, locals }) {
   const gallery = await getGallery(params.slug);
   if (!gallery) throw error(404, 'Galería no encontrada');
 
+  // Si es una subgalería, redirigir a /galeria/[parent]/[slug]
+  if (gallery.parent) {
+    throw redirect(307, `/galeria/${gallery.parent}/${gallery.slug}`);
+  }
+
+  const children = await listChildren(gallery.slug);
+  const hasChildren = children.length > 0;
+
   const protectedGallery = isProtected(gallery);
-  // Admins or visitors with valid access cookie can download.
-  const downloadsUnlocked =
-    !protectedGallery || locals.admin || hasAccess(cookies, params.slug);
+  const unlocked = !protectedGallery || locals.admin || hasAccess(cookies, params.slug);
+
+  // Si está protegida y no desbloqueada: no exponer fotos ni subgalerías
+  if (protectedGallery && !unlocked) {
+    return {
+      gallery: {
+        ...sanitize({ ...gallery, photos: [], children: [] }),
+        protected: true,
+        hasChildren,
+      },
+      downloadsUnlocked: false,
+      locked: true,
+    };
+  }
 
   return {
-    gallery: { ...sanitize(gallery), protected: protectedGallery },
-    downloadsUnlocked,
+    gallery: {
+      ...sanitize(gallery),
+      protected: protectedGallery,
+      hasChildren,
+      children: children.map(childSummary),
+    },
+    downloadsUnlocked: unlocked,
+    locked: false,
   };
 }
 
@@ -30,6 +71,7 @@ export const actions = {
     const password = (form.get('password') || '').toString();
     const gallery = await getGallery(params.slug);
     if (!gallery) throw error(404, 'Galería no encontrada');
+    if (gallery.parent) throw error(400, 'Esta galería es una subgalería.');
     if (!isProtected(gallery)) return { ok: true };
     if (!verifyGalleryPassword(gallery, password)) {
       return fail(401, { error: 'Contraseña incorrecta.' });

@@ -5,8 +5,12 @@
   export let data;
   export let form;
 
-  $: ({ gallery, categories, publicBase, siteUrl } = data);
-  $: shareUrl = `${siteUrl}/galeria/${gallery.slug}`;
+  $: ({ gallery, categories, publicBase, siteUrl, children, eligibleParents } = data);
+  $: shareUrl = gallery.parent
+    ? `${siteUrl}/galeria/${gallery.parent}/${gallery.slug}`
+    : `${siteUrl}/galeria/${gallery.slug}`;
+
+  let creatingChild = false;
 
   let lastPassword = '';
   let copyMsg = '';
@@ -101,9 +105,20 @@
 
 <header class="head">
   <div>
-    <a href="/admin/galerias" class="back">← Volver</a>
-    <span class="eyebrow">Galería · /{gallery.slug}</span>
+    {#if gallery.parent}
+      <a href={`/admin/galerias/${gallery.parent}`} class="back">← Volver a {gallery.parentTitle}</a>
+    {:else}
+      <a href="/admin/galerias" class="back">← Volver</a>
+    {/if}
+    <span class="eyebrow">
+      {gallery.parent ? `Subgalería de ${gallery.parentTitle}` : 'Galería'} · /{gallery.slug}
+    </span>
     <h1>{gallery.title}</h1>
+    {#if gallery.parent && gallery.parentProtected}
+      <p class="inherit-note">🔒 Hereda contraseña del padre — visitantes deben desbloquear <strong>{gallery.parentTitle}</strong> primero.</p>
+    {:else if gallery.parent}
+      <p class="inherit-note">↑ Capítulo del evento <strong>{gallery.parentTitle}</strong> (acceso libre).</p>
+    {/if}
   </div>
 </header>
 
@@ -135,8 +150,52 @@
   </form>
 </section>
 
+{#if !gallery.parent}
+<section class="children">
+  <h2>Subgalerías {children.length > 0 ? `· ${children.length}` : ''}</h2>
+  <p class="copy">
+    Esta galería puede contener capítulos (ej. una boda con misa, recepción, fiesta, novios).
+    Los visitantes verán cada capítulo dentro de esta galería y heredarán su acceso.
+  </p>
+
+  {#if children.length > 0}
+    <ul class="children-list">
+      {#each children as c (c.slug)}
+        <li>
+          <a href={`/admin/galerias/${c.slug}`} class="title">{c.title}</a>
+          <span class="muted small">/{c.slug} · {c.photoCount} foto{c.photoCount === 1 ? '' : 's'}</span>
+          {#if c.hidden}<span class="hidden-pill">👁️‍🗨️ Oculta</span>{/if}
+        </li>
+      {/each}
+    </ul>
+  {/if}
+
+  {#if creatingChild}
+    <form method="POST" action="?/createChild" use:enhance class="create-child">
+      <div class="row">
+        <label>
+          <span>Título del capítulo</span>
+          <input name="title" required placeholder="Ej. Misa, Recepción, Fiesta..." />
+        </label>
+        <label>
+          <span>Slug</span>
+          <input name="slug" placeholder="(auto)" />
+        </label>
+      </div>
+      <div class="children-actions">
+        <button type="submit" class="btn">Crear capítulo</button>
+        <button type="button" class="link-btn" on:click={() => (creatingChild = false)}>Cancelar</button>
+      </div>
+    </form>
+  {:else}
+    <button type="button" class="btn" on:click={() => (creatingChild = true)}>+ Nuevo capítulo</button>
+  {/if}
+  {#if form?.error}<p class="error" style="margin-top:1rem">{form.error}</p>{/if}
+</section>
+{/if}
+
 <section class="upload">
-  <h2>Subir fotos</h2>
+  <h2>Subir fotos {gallery.parent ? '(de este capítulo)' : ''}</h2>
   <p class="copy">
     Arrastrá o seleccioná archivos. Se suben directo a R2 (bucket <code>slpixel-galeria/{gallery.slug}/</code>) y se agregan a la galería.
   </p>
@@ -172,6 +231,7 @@
   {/if}
 </section>
 
+{#if !gallery.parent}
 <section class="visibility">
   <h2>Visibilidad {gallery.hidden ? '· 👁️‍🗨️ Oculta' : '· 🌐 Pública'}</h2>
   <p class="copy">
@@ -187,6 +247,7 @@
   </form>
   {#if form?.hiddenChanged}<p class="ok">Visibilidad actualizada.</p>{/if}
 </section>
+{/if}
 
 <section class="share">
   <h2>Compartir enlace</h2>
@@ -218,12 +279,13 @@
   {#if copyMsg}<p class="ok">{copyMsg}</p>{/if}
 </section>
 
+{#if !gallery.parent}
 <section class="access">
-  <h2>Descargas {gallery.protected ? '· 🔒 Con contraseña' : '· 🟢 Libres'}</h2>
+  <h2>Acceso {gallery.protected ? '· 🔒 Con contraseña' : '· 🟢 Libre'}</h2>
   <p class="copy">
     {gallery.protected
-      ? 'Cualquiera con el enlace puede ver las fotos, pero descargar / clic derecho / arrastrar está deshabilitado. Solo quienes ingresen la contraseña en la galería podrán descargar.'
-      : 'Las fotos se pueden ver y descargar libremente. Si querés proteger las descargas, definí una contraseña.'}
+      ? 'Esta galería es privada: los visitantes deben ingresar la contraseña para ver subgalerías, fotos y descargar. La contraseña se aplica a todos los capítulos hijos.'
+      : 'Las fotos y subgalerías se pueden ver y descargar libremente. Si querés proteger el evento entero (incluidos sus capítulos), definí una contraseña.'}
   </p>
   <form method="POST" action="?/setPassword" use:enhance>
     <div class="row access-row">
@@ -242,6 +304,41 @@
   {#if form?.passwordChanged}<p class="ok">Contraseña guardada.</p>{/if}
   {#if form?.passwordCleared}<p class="ok">Descargas ahora libres.</p>{/if}
   {#if form?.error}<p class="error">{form.error}</p>{/if}
+</section>
+{/if}
+
+<section class="parent-section">
+  <h2>{gallery.parent ? 'Padre · subgalería' : 'Estructura · galería principal'}</h2>
+  {#if gallery.parent}
+    <p class="copy">
+      Esta galería es un capítulo de <strong>{gallery.parentTitle}</strong>. Hereda su contraseña y categoría.
+      Podés desvincularla para convertirla de nuevo en una galería principal.
+    </p>
+    <form method="POST" action="?/setParent" use:enhance on:submit={(e) => { if (!confirm('¿Convertir en galería principal? Dejará de heredar el acceso del padre.')) e.preventDefault(); }}>
+      <input type="hidden" name="parent" value="" />
+      <button type="submit" class="btn">Desvincular del padre</button>
+    </form>
+  {:else}
+    <p class="copy">
+      Esta es una galería principal. Si querés convertirla en capítulo de otra galería, elegí un padre abajo.
+      No debe tener subgalerías ni contraseña propia para poder moverse.
+    </p>
+    <form method="POST" action="?/setParent" use:enhance>
+      <div class="row access-row">
+        <label>
+          <span>Padre</span>
+          <select name="parent">
+            <option value="">— sin padre —</option>
+            {#each eligibleParents as p (p.slug)}
+              <option value={p.slug}>{p.title}</option>
+            {/each}
+          </select>
+        </label>
+        <button type="submit" class="btn">Mover</button>
+      </div>
+    </form>
+  {/if}
+  {#if form?.parentChanged}<p class="ok">Vínculo actualizado.</p>{/if}
 </section>
 
 <section class="danger-zone">
@@ -352,4 +449,36 @@
   }
   .access .row.access-row .btn { white-space: nowrap; align-self: end; }
   .access .link-btn { margin-top: 0.4rem; }
+
+  .inherit-note {
+    background: #eef6ff; border: 1px solid #b9d6f7; color: #1d4f7a;
+    padding: 0.6rem 0.85rem; font-size: 0.88rem; margin: 0.8rem 0 0;
+  }
+  .children-list {
+    list-style: none; padding: 0; margin: 0 0 1.25rem;
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .children-list li {
+    display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+    padding: 0.65rem 0.85rem;
+    background: #f8f6f0; border: 1px solid #d6cfc3;
+  }
+  .children-list .title { color: #0d0d0b; font-weight: 500; text-decoration: none; }
+  .children-list .title:hover { text-decoration: underline; }
+  .children-list .muted { color: #7a756c; font-family: Menlo, Monaco, monospace; }
+  .small { font-size: 0.78rem; }
+  .hidden-pill {
+    display: inline-block; padding: 0.05rem 0.45rem;
+    background: #efeae0; border: 1px solid #b9ac8a; color: #4a4339;
+    font-size: 0.7rem; letter-spacing: 0.06em; border-radius: 999px;
+  }
+  .create-child { margin-top: 0.5rem; }
+  .create-child .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem; }
+  .children-actions { display: flex; gap: 1rem; align-items: center; }
+  .parent-section .row.access-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: end;
+  }
 </style>

@@ -21,12 +21,14 @@ Sitio web minimalista y elegante para el estudio fotográfico **SL Pixel**, cons
 ### Instalación
 
 1. **Clona el repositorio**
+
 ```bash
 git clone <tu-repositorio>
 cd slpixelpage
 ```
 
 2. **Instala las dependencias**
+
 ```bash
 npm install
 ```
@@ -34,11 +36,13 @@ npm install
 3. **Configura las variables de entorno**
 
 Copia el archivo `.env.example` a `.env`:
+
 ```bash
 cp .env.example .env
 ```
 
 Edita el archivo `.env` y configura tus credenciales de email:
+
 ```env
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
@@ -58,6 +62,7 @@ Para usar Gmail como servicio de correo:
 ### Desarrollo
 
 Inicia el servidor de desarrollo:
+
 ```bash
 npm run dev
 ```
@@ -141,6 +146,7 @@ Cuando un cliente hace clic en "Solicitar Fotos":
 ### Vercel (Recomendado)
 
 1. **Instala Vercel CLI**
+
 ```bash
 npm i -g vercel
 ```
@@ -148,11 +154,13 @@ npm i -g vercel
 2. **Configura el adaptador de Vercel**
 
 En `svelte.config.js`, asegúrate de usar el adaptador de Vercel:
+
 ```bash
 npm install -D @sveltejs/adapter-vercel
 ```
 
 Actualiza `svelte.config.js`:
+
 ```javascript
 import adapter from '@sveltejs/adapter-vercel';
 
@@ -164,6 +172,7 @@ export default {
 ```
 
 3. **Despliega**
+
 ```bash
 vercel
 ```
@@ -186,6 +195,7 @@ Sube la carpeta `build` a Netlify y configura las variables de entorno.
 El contenido de la galería se arma en dos pasos:
 
 1. **Manifest** (`src/lib/data/galleries.json`) — lista las galerías y sus fotos con `bucket`, `hash`, `ext`. Se genera con el scraper en `/tmp/pixieset-scraper/` (Playwright + stealth) y se importa al proyecto con:
+
    ```bash
    npm run galeria:manifest
    ```
@@ -212,10 +222,12 @@ La carpeta `static/galeria/<slug>/` está en `.gitignore` porque pesa cientos de
 ## 📞 Contacto
 
 **SL Pixel Studio**
+
 - Email: slpixelstudio@gmail.com
 - Web: [slpixel.com](https://slpixel.com)
 
 ---
 
 Desarrollado con ❤️ para SL Pixel
+
 # slpixelpage

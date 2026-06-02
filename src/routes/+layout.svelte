@@ -2,11 +2,7 @@
   import Header from '$lib/components/Header.svelte';
   import Footer from '$lib/components/Footer.svelte';
   import { brand } from '$lib/logos.js';
-  import { dev } from '$app/environment';
-  import { injectAnalytics } from '@vercel/analytics/sveltekit';
   import '$lib/styles/global.css';
-
-  injectAnalytics({ mode: dev ? 'development' : 'production' });
 </script>
 
 <svelte:head>

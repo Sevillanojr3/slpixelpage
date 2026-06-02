@@ -9,17 +9,17 @@ La solución estándar es publicar las imágenes a un **bucket** (con CDN en fre
 
 ## Comparación rápida
 
-| Opción | Costo típico (500 MB – 5 GB) | Egress | CDN incluido | Facilidad (1-5) | Notas |
-|---|---|---|---|---|---|
-| **Cloudflare R2** | 0 €/mes (10 GB free) → luego $0.015/GB | **Gratis** | Sí (Cloudflare) | 5 | Mejor relación precio/performance. S3-compatible. |
-| **Backblaze B2** | $6/TB/mes almacenamiento | $0.01/GB (3× gratis via Bandwidth Alliance con Cloudflare) | Via Bunny/Cloudflare | 4 | Muy barato; normalmente pareado con un CDN. |
-| **Bunny.net Storage + CDN** | $0.01/GB almacenamiento + $0.01/GB egress | Incluido | Sí (Bunny CDN) | 5 | Muy rápido, pay-as-you-go con mínimos bajos. |
-| **Cloudinary** | Free 25 GB storage + 25 GB/mes egress | Incluido | Sí | 4 | **Optimización on-the-fly** (f_auto, q_auto). Ideal si no querés pre-generar tamaños. |
-| **imagekit.io** | Free 20 GB storage + 20 GB/mes egress | Incluido | Sí | 4 | Similar a Cloudinary. |
-| **AWS S3 + CloudFront** | ~$0.023/GB storage + $0.085/GB egress | Pago | Sí (CloudFront) | 2 | Estándar de industria; la configuración es más laboriosa. |
-| **Supabase Storage** | Free hasta 1 GB | Pago sobre cuota | Sí | 4 | Útil si ya usás Supabase para lo demás. |
-| **Vercel Blob** | $0.15/GB almacenamiento + $0.30/GB egress | Pago | Sí | 5 | Perfecto si estás deployando en Vercel, pero egress caro para fotos. |
-| **Pixieset hotlink (actual)** | 0 € | 0 € | Sí (CF) | — | No recomendado: Cloudflare bloquea requests server-side y no controlás las imágenes. |
+| Opción                        | Costo típico (500 MB – 5 GB)              | Egress                                                     | CDN incluido         | Facilidad (1-5) | Notas                                                                                 |
+| ----------------------------- | ----------------------------------------- | ---------------------------------------------------------- | -------------------- | --------------- | ------------------------------------------------------------------------------------- |
+| **Cloudflare R2**             | 0 €/mes (10 GB free) → luego $0.015/GB    | **Gratis**                                                 | Sí (Cloudflare)      | 5               | Mejor relación precio/performance. S3-compatible.                                     |
+| **Backblaze B2**              | $6/TB/mes almacenamiento                  | $0.01/GB (3× gratis via Bandwidth Alliance con Cloudflare) | Via Bunny/Cloudflare | 4               | Muy barato; normalmente pareado con un CDN.                                           |
+| **Bunny.net Storage + CDN**   | $0.01/GB almacenamiento + $0.01/GB egress | Incluido                                                   | Sí (Bunny CDN)       | 5               | Muy rápido, pay-as-you-go con mínimos bajos.                                          |
+| **Cloudinary**                | Free 25 GB storage + 25 GB/mes egress     | Incluido                                                   | Sí                   | 4               | **Optimización on-the-fly** (f_auto, q_auto). Ideal si no querés pre-generar tamaños. |
+| **imagekit.io**               | Free 20 GB storage + 20 GB/mes egress     | Incluido                                                   | Sí                   | 4               | Similar a Cloudinary.                                                                 |
+| **AWS S3 + CloudFront**       | ~$0.023/GB storage + $0.085/GB egress     | Pago                                                       | Sí (CloudFront)      | 2               | Estándar de industria; la configuración es más laboriosa.                             |
+| **Supabase Storage**          | Free hasta 1 GB                           | Pago sobre cuota                                           | Sí                   | 4               | Útil si ya usás Supabase para lo demás.                                               |
+| **Vercel Blob**               | $0.15/GB almacenamiento + $0.30/GB egress | Pago                                                       | Sí                   | 5               | Perfecto si estás deployando en Vercel, pero egress caro para fotos.                  |
+| **Pixieset hotlink (actual)** | 0 €                                       | 0 €                                                        | Sí (CF)              | —               | No recomendado: Cloudflare bloquea requests server-side y no controlás las imágenes.  |
 
 ### Recomendación
 
@@ -51,9 +51,11 @@ Alternativa: **Cloudinary free tier** si querés evitar manejar tamaños manualm
    ```
 
 4. **Configurar la variable de entorno** del proyecto:
+
    ```env
    PUBLIC_IMAGES_BASE_URL=https://pub-xxxxxxxxxxxxxxxx.r2.dev
    ```
+
    O en Vercel/Netlify: _Settings → Environment Variables_.
 
 5. **Redeploy** y verificar que la galería carga desde R2 (DevTools → Network).

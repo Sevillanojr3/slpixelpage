@@ -3,6 +3,7 @@
 ## En 3 pasos simples
 
 ### 1️⃣ Instalar dependencias
+
 ```bash
 npm install
 ```
@@ -19,11 +20,13 @@ EMAIL_PASS=xxxx-xxxx-xxxx-xxxx
 ```
 
 > 💡 **Para Gmail:** Necesitas una "Contraseña de aplicación"
+>
 > 1. Ve a https://myaccount.google.com/apppasswords
 > 2. Genera una contraseña para "Correo"
 > 3. Copia los 16 caracteres y úsalos en `EMAIL_PASS`
 
 ### 3️⃣ Iniciar el servidor
+
 ```bash
 npm run dev
 ```
@@ -64,9 +67,11 @@ npm run dev
 ## Personalizar el Sitio
 
 ### Cambiar Logos
+
 Reemplaza las imágenes en: `static/Logos/`
 
 ### Editar Paquetes de Fotos
+
 Edita el array en: `src/routes/galeria/+page.svelte`
 
 ```javascript
@@ -82,6 +87,7 @@ const paquetes = [
 ```
 
 ### Cambiar Colores
+
 Edita las variables en: `src/lib/styles/global.css`
 
 ```css
@@ -93,6 +99,7 @@ Edita las variables en: `src/lib/styles/global.css`
 ```
 
 ### Modificar Textos
+
 - **Inicio:** `src/routes/+page.svelte`
 - **Galería:** `src/routes/galeria/+page.svelte`
 - **Header:** `src/lib/components/Header.svelte`
@@ -121,6 +128,7 @@ npm run format
 ## ¿Listo para publicar?
 
 Lee la guía completa de despliegue:
+
 - 📄 [DEPLOYMENT.md](./DEPLOYMENT.md) - Vercel, Netlify, VPS
 - 📄 [INSTALACION.md](./INSTALACION.md) - Guía detallada
 - 📄 [README.md](./README.md) - Documentación completa
@@ -147,9 +155,9 @@ Antes de poner el sitio en producción:
 ## Soporte
 
 ¿Problemas? Consulta:
+
 - **Instalación:** [INSTALACION.md](./INSTALACION.md)
 - **Despliegue:** [DEPLOYMENT.md](./DEPLOYMENT.md)
 - **Errores comunes:** Revisa los logs en la terminal
 
 📧 **Contacto del estudio:** slpixelstudio@gmail.com
-

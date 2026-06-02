@@ -9,6 +9,7 @@ npm install
 ```
 
 Esto instalará todas las dependencias necesarias, incluyendo:
+
 - SvelteKit
 - Nodemailer (para envío de correos)
 - Todas las dependencias de desarrollo
@@ -18,6 +19,7 @@ Esto instalará todas las dependencias necesarias, incluyendo:
 ### Opción A: Gmail (Recomendado para desarrollo)
 
 1. **Crea un archivo `.env`** en la raíz del proyecto:
+
 ```bash
 touch .env
 ```
@@ -25,16 +27,17 @@ touch .env
 2. **Configura Gmail con contraseña de aplicación:**
 
    a. Ve a tu cuenta de Google: https://myaccount.google.com/
-   
+
    b. Busca "Seguridad" → "Verificación en dos pasos" y actívala
-   
+
    c. Ve a "Contraseñas de aplicaciones": https://myaccount.google.com/apppasswords
-   
+
    d. Genera una nueva contraseña para "Correo" en "Otro dispositivo personalizado"
-   
+
    e. Copia la contraseña generada (son 16 caracteres sin espacios)
 
 3. **Edita el archivo `.env`** con estos valores:
+
 ```env
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
@@ -45,6 +48,7 @@ EMAIL_PASS=xxxx xxxx xxxx xxxx  # La contraseña de aplicación
 ### Opción B: Otros proveedores de email
 
 #### Outlook/Hotmail
+
 ```env
 EMAIL_HOST=smtp-mail.outlook.com
 EMAIL_PORT=587
@@ -53,6 +57,7 @@ EMAIL_PASS=tu-contraseña
 ```
 
 #### Yahoo
+
 ```env
 EMAIL_HOST=smtp.mail.yahoo.com
 EMAIL_PORT=587
@@ -61,6 +66,7 @@ EMAIL_PASS=tu-contraseña-de-aplicacion
 ```
 
 #### Servidor SMTP Personalizado
+
 ```env
 EMAIL_HOST=smtp.tuservidor.com
 EMAIL_PORT=587
@@ -94,6 +100,7 @@ El sitio estará disponible en: **http://localhost:5173**
 **Causa:** Contraseña incorrecta o Gmail bloqueó el acceso
 
 **Solución:**
+
 1. Verifica que usaste una "Contraseña de aplicación" y no tu contraseña normal de Gmail
 2. Asegúrate de que la verificación en dos pasos esté activada
 3. Copia la contraseña sin espacios: `xxxxxxxxxxxxxxxx`
@@ -103,6 +110,7 @@ El sitio estará disponible en: **http://localhost:5173**
 **Causa:** Problema de conexión al servidor SMTP
 
 **Solución:**
+
 1. Verifica tu conexión a internet
 2. Confirma que `EMAIL_HOST` y `EMAIL_PORT` sean correctos
 3. Algunos proveedores de internet bloquean el puerto 587, intenta con el puerto 465:
@@ -115,6 +123,7 @@ El sitio estará disponible en: **http://localhost:5173**
 **Causa:** Pueden estar en spam o configuración incorrecta
 
 **Solución:**
+
 1. Revisa la carpeta de spam/correo no deseado
 2. Verifica que el `EMAIL_USER` esté bien escrito
 3. Comprueba los logs en la terminal para ver errores
@@ -124,6 +133,7 @@ El sitio estará disponible en: **http://localhost:5173**
 **Causa:** El archivo `.env` no está en la ubicación correcta
 
 **Solución:**
+
 1. Asegúrate de que `.env` esté en la **raíz del proyecto** (junto a `package.json`)
 2. Reinicia el servidor de desarrollo después de crear/modificar `.env`
 3. No uses comillas en los valores del `.env`
@@ -159,16 +169,19 @@ Una vez que todo funcione localmente:
 ## Despliegue a Vercel
 
 1. **Instala el adaptador de Vercel:**
+
 ```bash
 npm install -D @sveltejs/adapter-vercel
 ```
 
 2. **Actualiza `svelte.config.js`:**
+
 ```javascript
 import adapter from '@sveltejs/adapter-vercel';
 ```
 
 3. **Despliega:**
+
 ```bash
 npm i -g vercel
 vercel
@@ -182,4 +195,3 @@ vercel
 ---
 
 ¿Necesitas ayuda? Contacta al desarrollador o revisa la documentación en `README.md`
-

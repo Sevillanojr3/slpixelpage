@@ -8,6 +8,7 @@ import {
   setGalleryPassword,
   setGalleryHidden,
   setGalleryParent,
+  setGalleryCover,
   listChildren,
   isProtected,
   isHidden,
@@ -48,6 +49,8 @@ export const load = async ({ params }) => {
       date: gallery.date || null,
       h1: gallery.h1 || null,
       photos: gallery.photos || [],
+      ogImage: gallery.ogImage || null,
+      coverPhoto: gallery.coverPhoto || null,
       protected: isProtected(gallery),
       hidden: isHidden(gallery),
       parent: gallery.parent || null,
@@ -73,6 +76,48 @@ export const actions = {
     if (!title) return fail(400, { error: 'Título requerido.' });
     await upsertGallery({ slug: params.slug, title, category, date });
     return { ok: true };
+  },
+
+  /**
+   * Save the share thumbnail the browser just generated and uploaded. The
+   * previous derivative is deleted so the bucket doesn't collect orphans.
+   */
+  setCover: async ({ request, params }) => {
+    const form = await request.formData();
+    const ogImage = (form.get('ogKey') || '').toString().trim();
+    const coverPhoto = (form.get('photoKey') || '').toString().trim() || null;
+    if (!ogImage) return fail(400, { error: 'Falta la miniatura generada.' });
+    let previous;
+    try {
+      previous = await setGalleryCover(params.slug, { ogImage, coverPhoto });
+    } catch (e) {
+      return fail(400, { error: e.message });
+    }
+    if (previous) {
+      try {
+        await deleteObject(previous);
+      } catch (e) {
+        console.warn('[admin] R2 delete of old cover failed (continuing):', e.message);
+      }
+    }
+    return { ok: true, coverChanged: true };
+  },
+
+  clearCover: async ({ params }) => {
+    let previous;
+    try {
+      previous = await setGalleryCover(params.slug);
+    } catch (e) {
+      return fail(400, { error: e.message });
+    }
+    if (previous) {
+      try {
+        await deleteObject(previous);
+      } catch (e) {
+        console.warn('[admin] R2 delete of old cover failed (continuing):', e.message);
+      }
+    }
+    return { ok: true, coverCleared: true };
   },
 
   removePhoto: async ({ request, params }) => {

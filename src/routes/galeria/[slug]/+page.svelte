@@ -1,16 +1,17 @@
 <script>
   import { thumbUrl } from '$lib/images.js';
   import PhotoGrid from '$lib/components/PhotoGrid.svelte';
+  import Seo from '$lib/components/Seo.svelte';
+  import { cleanTitle } from '$lib/seo.js';
 
   export let data;
   export let form;
-  $: ({ gallery, downloadsUnlocked, locked } = data);
+  $: ({ gallery, downloadsUnlocked, locked, seo } = data);
   $: protectedDownloads = gallery.protected && !downloadsUnlocked;
   $: children = gallery.children || [];
   $: photos = gallery.photos || [];
   $: hasChildren = gallery.hasChildren;
 
-  const cleanTitle = (t) => (t || '').replace(/\s+de SLPixel$/i, '').trim();
   $: title = cleanTitle(gallery.title);
 
   let showUnlock = false;
@@ -22,10 +23,7 @@
     : '';
 </script>
 
-<svelte:head>
-  <title>{title} — SL Pixel</title>
-  <meta name="description" content={`Galería fotográfica: ${title}`} />
-</svelte:head>
+<Seo {...seo} />
 
 <!-- ===== Header ===== -->
 <section class="g-head">

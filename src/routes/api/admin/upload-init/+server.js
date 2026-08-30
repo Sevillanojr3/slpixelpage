@@ -17,11 +17,15 @@ export async function POST({ request, locals }) {
   const slug = String(body.slug || '').trim();
   const filename = String(body.filename || '').trim();
   const contentType = String(body.contentType || 'application/octet-stream');
+  // 'og' uploads are the generated share thumbnails, which live in their own
+  // prefix so they never show up as photos of the gallery.
+  const kind = body.kind === 'og' ? 'og' : 'photo';
   if (!slug || !filename) return json({ error: 'slug y filename requeridos' }, { status: 400 });
   if (!(await getGallery(slug))) return json({ error: 'Galería no existe' }, { status: 404 });
 
   const stamp = Date.now().toString(36);
-  const key = `${slug}/${stamp}-${safeName(filename)}`;
+  const key =
+    kind === 'og' ? `og/${slug}-${stamp}.jpg` : `${slug}/${stamp}-${safeName(filename)}`;
   const url = await presignPut(key, contentType, 600);
   return json({ url, key });
 }

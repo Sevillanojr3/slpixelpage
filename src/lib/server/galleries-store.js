@@ -204,6 +204,30 @@ export async function setGalleryHidden(slug, hidden) {
   await write(data);
 }
 
+/**
+ * Store the share-preview cover for a gallery.
+ *
+ * `ogImage` is the R2 key of the 1200x630 derivative the admin just uploaded;
+ * `coverPhoto` is the key of the photo it was made from, so the editor can mark
+ * it. Pass no arguments to clear both. Returns the previous derivative key so
+ * the caller can delete the orphan from the bucket.
+ */
+export async function setGalleryCover(slug, { ogImage = null, coverPhoto = null } = {}) {
+  const data = await read();
+  const g = data.galleries.find((x) => x.slug === slug);
+  if (!g) throw new Error('Galería no encontrada.');
+  const previous = g.ogImage || null;
+  if (ogImage) {
+    g.ogImage = ogImage;
+    g.coverPhoto = coverPhoto;
+  } else {
+    delete g.ogImage;
+    delete g.coverPhoto;
+  }
+  await write(data);
+  return previous === ogImage ? null : previous;
+}
+
 export async function addPhotoToGallery(slug, photo) {
   const data = await read();
   const g = data.galleries.find((x) => x.slug === slug);
@@ -218,5 +242,8 @@ export async function removePhotoFromGallery(slug, key) {
   const g = data.galleries.find((x) => x.slug === slug);
   if (!g) return;
   g.photos = (g.photos || []).filter((p) => p.key !== key);
+  // The generated derivative is its own object and still renders fine, but the
+  // "★ portada" marker would point at a photo that no longer exists.
+  if (g.coverPhoto === key) delete g.coverPhoto;
   await write(data);
 }

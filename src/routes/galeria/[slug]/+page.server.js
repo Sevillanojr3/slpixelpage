@@ -6,6 +6,7 @@ import {
   isProtected,
 } from '$lib/server/galleries-store.js';
 import { hasAccess, setAccessCookie } from '$lib/server/gallery-access.js';
+import { buildGallerySeo } from '$lib/seo.js';
 
 export const prerender = false;
 
@@ -25,7 +26,7 @@ function childSummary(child) {
   };
 }
 
-export async function load({ params, cookies, locals }) {
+export async function load({ params, cookies, locals, url }) {
   const gallery = await getGallery(params.slug);
   if (!gallery) throw error(404, 'Galería no encontrada');
 
@@ -40,6 +41,14 @@ export async function load({ params, cookies, locals }) {
   const protectedGallery = isProtected(gallery);
   const unlocked = !protectedGallery || locals.admin || hasAccess(cookies, params.slug);
 
+  // Built from the full gallery so the locked branch below still gets a
+  // preview — resolveOgImage falls back to the brand image when protected.
+  const seo = buildGallerySeo({
+    gallery: { ...sanitize(gallery), protected: protectedGallery },
+    origin: url.origin,
+    path: url.pathname,
+  });
+
   // Si está protegida y no desbloqueada: no exponer fotos ni subgalerías
   if (protectedGallery && !unlocked) {
     return {
@@ -50,6 +59,7 @@ export async function load({ params, cookies, locals }) {
       },
       downloadsUnlocked: false,
       locked: true,
+      seo,
     };
   }
 
@@ -62,6 +72,7 @@ export async function load({ params, cookies, locals }) {
     },
     downloadsUnlocked: unlocked,
     locked: false,
+    seo,
   };
 }
 

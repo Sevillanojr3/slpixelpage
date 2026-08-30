@@ -1,10 +1,11 @@
 <script>
   import { thumbUrl } from '$lib/images.js';
+  import Seo from '$lib/components/Seo.svelte';
+  import { cleanTitle } from '$lib/seo.js';
 
   export let data;
-  const { list } = data;
+  const { list, seo } = data;
 
-  const cleanTitle = (t) => (t || '').replace(/\s+de SLPixel$/i, '').trim();
   const cleaned = list.map((g) => ({ ...g, title: cleanTitle(g.title) }));
 
   const categories = [
@@ -30,10 +31,7 @@
   }
 </script>
 
-<svelte:head>
-  <title>Galería — SL Pixel</title>
-  <meta name="description" content="Portafolios de fotografía SL Pixel: eventos, deportes y sesiones corporativas." />
-</svelte:head>
+<Seo {...seo} />
 
 <!-- Page header -->
 <section class="gal-header">

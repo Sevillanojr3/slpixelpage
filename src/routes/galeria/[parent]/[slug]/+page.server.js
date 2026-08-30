@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getGallery, isProtected } from '$lib/server/galleries-store.js';
 import { hasAccess } from '$lib/server/gallery-access.js';
+import { buildGallerySeo } from '$lib/seo.js';
 
 export const prerender = false;
 
@@ -9,7 +10,7 @@ function sanitize(g) {
   return rest;
 }
 
-export async function load({ params, cookies, locals }) {
+export async function load({ params, cookies, locals, url }) {
   const parent = await getGallery(params.parent);
   if (!parent) throw error(404, 'Galería padre no encontrada');
   if (parent.parent) throw error(400, 'Estructura inválida.');
@@ -30,16 +31,25 @@ export async function load({ params, cookies, locals }) {
     throw redirect(307, `/galeria/${parent.slug}`);
   }
 
+  const parentSummary = {
+    slug: parent.slug,
+    title: parent.title || parent.slug,
+    category: parent.category || null,
+    protected: protectedParent,
+  };
+
   return {
-    parent: {
-      slug: parent.slug,
-      title: parent.title || parent.slug,
-      category: parent.category || null,
-      protected: protectedParent,
-    },
+    parent: parentSummary,
     child: {
       ...sanitize(child),
     },
     downloadsUnlocked: unlocked,
+    // A subgallery with no cover of its own inherits the parent's.
+    seo: buildGallerySeo({
+      gallery: sanitize(child),
+      parent: { ...parentSummary, ogImage: parent.ogImage, photos: parent.photos },
+      origin: url.origin,
+      path: url.pathname,
+    }),
   };
 }

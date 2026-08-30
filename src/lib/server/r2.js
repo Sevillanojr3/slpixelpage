@@ -42,6 +42,15 @@ export async function deleteObject(key) {
   await getClient().send(cmd);
 }
 
+/** Read a raw object from R2 (used by the admin image proxy). */
+export async function getObject(key) {
+  const res = await getClient().send(new GetObjectCommand({ Bucket: bucket(), Key: key }));
+  return {
+    body: await res.Body.transformToByteArray(),
+    contentType: res.ContentType || 'application/octet-stream',
+  };
+}
+
 /** Read a JSON object from R2. Returns null if the key does not exist. */
 export async function getJson(key) {
   try {

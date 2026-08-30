@@ -14,18 +14,27 @@ export const BEST_SIZE = 'xxlarge';
 // xlarge — that's the highest size we actually downloaded for them.
 const COVER_MAX_SIZE = 'xlarge';
 
+/**
+ * Object key of a photo inside the bucket. Admin-uploaded photos store a direct
+ * R2 key (e.g. "slug/abc-file.jpg"); Pixieset entries are addressed by hash and
+ * variant. Returns '' for an entry we can't resolve.
+ *
+ * @param {{bucket?:string,hash?:string,ext?:string,size?:string,key?:string}} p
+ */
+export function photoObjectKey(p, size, slug) {
+  if (p?.key) return p.key;
+  if (!p?.hash) return '';
+  const ext = (p.ext || 'jpg').toLowerCase();
+  const effective = p.size === 'cover' && size === 'xxlarge' ? COVER_MAX_SIZE : size;
+  return `${slug}/${p.hash}-${effective}.${ext}`;
+}
+
 /** @param {{bucket?:string,hash?:string,ext?:string,size?:string,key?:string}} p */
 export function photoUrl(p, size, slug) {
-  // Admin-uploaded photos store a direct R2 key (e.g. "slug/abc-file.jpg").
-  if (p?.key) {
-    if (BASE) return `${BASE}/${p.key}`;
-    return `/${p.key}`;
-  }
-  const ext = (p.ext || 'jpg').toLowerCase();
-  const effective = p?.size === 'cover' && size === 'xxlarge' ? COVER_MAX_SIZE : size;
-  const filename = `${p.hash}-${effective}.${ext}`;
-  if (BASE) return `${BASE}/${slug}/${filename}`;
-  return `/galeria/${slug}/${filename}`;
+  const key = photoObjectKey(p, size, slug);
+  if (BASE) return `${BASE}/${key}`;
+  // Locally, Pixieset variants are served from the static gallery dir.
+  return p?.key ? `/${key}` : `/galeria/${key}`;
 }
 
 /** Stable identity for keying #each blocks across both photo formats. */

@@ -1,8 +1,9 @@
 import { read } from '$lib/server/galleries-store.js';
+import { buildSiteSeo } from '$lib/seo.js';
 
 export const prerender = false;
 
-export async function load() {
+export async function load({ url }) {
   const data = await read();
   const all = data.galleries;
   const topLevel = all.filter((g) => !g.parent && !g.hidden);
@@ -43,5 +44,14 @@ export async function load() {
     .filter((g) => g.count > 0 || g.childrenCount > 0)
     .sort((a, b) => (a.date && b.date ? b.date.localeCompare(a.date) : 0));
 
-  return { list };
+  return {
+    list,
+    seo: buildSiteSeo({
+      title: 'Galería — SL Pixel',
+      description:
+        'Portafolios de fotografía SL Pixel: eventos, deportes y sesiones corporativas.',
+      origin: url.origin,
+      path: url.pathname,
+    }),
+  };
 }

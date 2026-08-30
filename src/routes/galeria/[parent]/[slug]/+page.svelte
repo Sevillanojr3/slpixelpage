@@ -1,11 +1,12 @@
 <script>
   import PhotoGrid from '$lib/components/PhotoGrid.svelte';
+  import Seo from '$lib/components/Seo.svelte';
+  import { cleanTitle } from '$lib/seo.js';
 
   export let data;
-  $: ({ parent, child, downloadsUnlocked } = data);
+  $: ({ parent, child, downloadsUnlocked, seo } = data);
   $: protectedDownloads = parent.protected && !downloadsUnlocked;
 
-  const cleanTitle = (t) => (t || '').replace(/\s+de SLPixel$/i, '').trim();
   $: parentTitle = cleanTitle(parent.title);
   $: title = cleanTitle(child.title);
   $: photos = child.photos || [];
@@ -14,10 +15,7 @@
     : '';
 </script>
 
-<svelte:head>
-  <title>{title} · {parentTitle} — SL Pixel</title>
-  <meta name="description" content={`${title} — parte de ${parentTitle}`} />
-</svelte:head>
+<Seo {...seo} />
 
 <section class="g-head">
   <div class="container">

@@ -3,10 +3,11 @@
   import { thumbUrl, fullUrl } from '$lib/images.js';
   import { env as publicEnv } from '$env/dynamic/public';
   import { brand } from '$lib/logos.js';
+  import Seo from '$lib/components/Seo.svelte';
+  import { cleanTitle } from '$lib/seo.js';
 
   export let data;
 
-  const cleanTitle = (t) => (t || '').replace(/\s+de SLPixel$/i, '').trim();
   const all = (data.galleries || [])
     .filter((g) => (g.photos || []).length > 0)
     .map((g) => ({ ...g, title: cleanTitle(g.title) }));
@@ -89,10 +90,7 @@
   });
 </script>
 
-<svelte:head>
-  <title>SLPixel — Estudio de Fotografía Editorial</title>
-  <meta name="description" content="SLPixel — Estudio de fotografía y producción visual en Panamá. Bodas, eventos, deportes y sesiones corporativas." />
-</svelte:head>
+<Seo {...data.seo} />
 
 <!-- =============== HERO =============== -->
 <section

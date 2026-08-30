@@ -1,6 +1,8 @@
 <script>
-  import { enhance } from '$app/forms';
+  import { enhance, deserialize } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
+  import { OG_WIDTH, OG_HEIGHT } from '$lib/seo.js';
+  import { photoObjectKey, BEST_SIZE } from '$lib/images.js';
 
   export let data;
   export let form;
@@ -32,22 +34,123 @@
   let uploadStatus = '';
   let uploading = false;
 
+  /** Key of the photo inside the R2 bucket (admin uploads and Pixieset alike). */
+  const bucketKey = (p) => photoObjectKey(p, BEST_SIZE, gallery.slug);
+
   /** Resolve preview URL for a photo entry. Supports admin uploads (key) and Pixieset (bucket/hash/ext). */
   function photoPreviewUrl(p) {
-    if (p.key) {
-      return publicBase ? `${publicBase}/${p.key}` : `/${p.key}`;
-    }
-    if (p.bucket && p.hash) {
-      const size = p.size || 'large';
-      const ext = (p.ext || 'jpg').toLowerCase();
-      const path = `${gallery.slug}/${p.hash}-${size}.${ext}`;
-      return publicBase ? `${publicBase}/${path}` : `/galeria/${path}`;
-    }
-    return '';
+    const key = bucketKey(p);
+    if (!key) return '';
+    if (publicBase) return `${publicBase}/${key}`;
+    return p.key ? `/${key}` : `/galeria/${key}`;
   }
 
   function photoIdentity(p) {
     return p.key || `${p.bucket}/${p.hash}`;
+  }
+
+  // WhatsApp silently drops link previews over roughly 600 KB, so the thumbnail
+  // is re-encoded at lower quality until it fits.
+  const OG_MAX_BYTES = 600 * 1024;
+  const OG_QUALITIES = [0.82, 0.72, 0.62];
+
+  let coverBusy = false;
+  let coverStatus = '';
+
+  $: coverPhotoKey = gallery.coverPhoto;
+  const isCover = (p, current) => Boolean(current) && bucketKey(p) === current;
+
+  /** Centre-crop a bucket photo to a 1200x630 JPEG in the browser. */
+  async function renderCover(sourceKey) {
+    // Read through our own origin: the r2.dev host sends no CORS headers, which
+    // would taint the canvas and block toBlob().
+    const res = await fetch(`/api/admin/image?key=${encodeURIComponent(sourceKey)}`);
+    if (!res.ok) throw new Error('No se pudo leer la foto original.');
+    const bitmap = await createImageBitmap(await res.blob());
+
+    const canvas = document.createElement('canvas');
+    canvas.width = OG_WIDTH;
+    canvas.height = OG_HEIGHT;
+    const ctx = canvas.getContext('2d');
+
+    const target = OG_WIDTH / OG_HEIGHT;
+    const ratio = bitmap.width / bitmap.height;
+    const sw = ratio > target ? bitmap.height * target : bitmap.width;
+    const sh = ratio > target ? bitmap.height : bitmap.width / target;
+    ctx.drawImage(
+      bitmap,
+      (bitmap.width - sw) / 2,
+      (bitmap.height - sh) / 2,
+      sw,
+      sh,
+      0,
+      0,
+      OG_WIDTH,
+      OG_HEIGHT,
+    );
+    bitmap.close();
+
+    let blob = null;
+    for (const quality of OG_QUALITIES) {
+      blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+      if (!blob) throw new Error('El navegador no pudo generar la miniatura.');
+      if (blob.size <= OG_MAX_BYTES) break;
+    }
+    return blob;
+  }
+
+  async function useAsCover(photo) {
+    if (coverBusy) return;
+    coverBusy = true;
+    coverStatus = 'Generando miniatura…';
+    try {
+      const sourceKey = bucketKey(photo);
+      const blob = await renderCover(sourceKey);
+
+      coverStatus = `Subiendo miniatura (${Math.round(blob.size / 1024)} KB)…`;
+      const initRes = await fetch('/api/admin/upload-init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug: gallery.slug,
+          filename: 'og.jpg',
+          contentType: 'image/jpeg',
+          kind: 'og',
+        }),
+      });
+      if (!initRes.ok) {
+        const errBody = await initRes.json().catch(() => ({}));
+        throw new Error(errBody.error || `init ${initRes.status}`);
+      }
+      const { url, key } = await initRes.json();
+
+      const putRes = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/jpeg' },
+        body: blob,
+      });
+      if (!putRes.ok) throw new Error(`R2 PUT ${putRes.status}`);
+
+      const body = new FormData();
+      body.set('ogKey', key);
+      body.set('photoKey', sourceKey);
+      const saveRes = await fetch('?/setCover', {
+        method: 'POST',
+        headers: { 'x-sveltekit-action': 'true' },
+        body,
+      });
+      const result = deserialize(await saveRes.text());
+      if (result.type === 'failure') throw new Error(result.data?.error || 'No se pudo guardar.');
+      if (result.type === 'error') throw new Error(result.error?.message || 'No se pudo guardar.');
+
+      await invalidateAll();
+      coverStatus = 'Miniatura actualizada ✓';
+    } catch (err) {
+      console.error('[cover]', err);
+      coverStatus = `Error: ${err.message}`;
+    } finally {
+      coverBusy = false;
+    }
   }
 
   async function handleFiles(e) {
@@ -206,6 +309,43 @@
   {#if uploadStatus}<p class="status">{uploadStatus}</p>{/if}
 </section>
 
+<section class="cover">
+  <h2>Miniatura al compartir {gallery.ogImage ? '· ✓ Configurada' : '· ⚠ Sin configurar'}</h2>
+  <p class="copy">
+    Es la imagen que aparece cuando pegás el enlace de la galería en WhatsApp, Facebook o Instagram.
+    Elegí una foto de abajo con <strong>Portada</strong> y se genera una miniatura de {OG_WIDTH}×{OG_HEIGHT}
+    optimizada para que cargue rápido.
+  </p>
+
+  {#if gallery.protected || gallery.parentProtected}
+    <p class="warn">
+      🔒 Galería con contraseña: al compartir el enlace se muestra el logo de SL Pixel, nunca una
+      foto del cliente. La miniatura que elijas acá se usará si algún día quitás la contraseña.
+    </p>
+  {/if}
+
+  {#if gallery.ogImage}
+    <div class="cover-preview">
+      <img src={`${publicBase}/${gallery.ogImage}`} alt="Miniatura al compartir" />
+    </div>
+    <form
+      method="POST"
+      action="?/clearCover"
+      use:enhance
+      on:submit={(e) => { if (!confirm('¿Quitar la miniatura? Al compartir se usará la primera foto sin optimizar.')) e.preventDefault(); }}
+    >
+      <button type="submit" class="link-btn danger">Quitar miniatura</button>
+    </form>
+  {:else}
+    <p class="warn">
+      Sin miniatura optimizada: al compartir se usa la primera foto tal cual. WhatsApp descarta las
+      imágenes de más de 600 KB, así que puede que no aparezca ninguna vista previa.
+    </p>
+  {/if}
+
+  {#if coverStatus}<p class="status">{coverStatus}</p>{/if}
+</section>
+
 <section class="photos">
   <h2>{gallery.photos.length} foto{gallery.photos.length === 1 ? '' : 's'}</h2>
   {#if gallery.photos.length === 0}
@@ -213,9 +353,18 @@
   {:else}
     <ul class="grid">
       {#each gallery.photos as photo (photoIdentity(photo))}
-        <li class="tile">
+        <li class="tile" class:is-cover={isCover(photo, coverPhotoKey)}>
           <img src={photoPreviewUrl(photo)} alt="" loading="lazy" />
+          {#if isCover(photo, coverPhotoKey)}<span class="cover-badge">★ Portada</span>{/if}
           <div class="tile-actions">
+            <button
+              type="button"
+              class="link-btn"
+              disabled={coverBusy}
+              on:click={() => useAsCover(photo)}
+            >
+              {isCover(photo, coverPhotoKey) ? 'Regenerar' : 'Portada'}
+            </button>
             {#if photo.key}
               <form method="POST" action="?/removePhoto" use:enhance on:submit={(e) => { if (!confirm('¿Eliminar esta foto?')) e.preventDefault(); }}>
                 <input type="hidden" name="key" value={photo.key} />
@@ -403,8 +552,25 @@
   .tile-actions {
     position: absolute; right: 0.4rem; bottom: 0.4rem;
     background: rgba(255,255,255,0.94); padding: 0.25rem 0.5rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .tile.is-cover { border-color: #0d0d0b; box-shadow: inset 0 0 0 2px #0d0d0b; }
+  .cover-badge {
+    position: absolute; left: 0.4rem; top: 0.4rem;
+    background: #0d0d0b; color: #f5f2ec; padding: 0.2rem 0.45rem;
+    font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .cover-preview {
+    border: 1px solid #d6cfc3; background: #f8f6f0;
+    max-width: 480px; margin-bottom: 0.85rem;
+  }
+  .cover-preview img { display: block; width: 100%; height: auto; }
+  .warn {
+    background: #fffbeb; border: 1px solid #fcd34d; color: #78350f;
+    padding: 0.65rem 0.85rem; font-size: 0.88rem; margin: 0 0 1rem;
   }
   .link-btn { background: none; border: none; cursor: pointer; padding: 0; font-size: 0.78rem; }
+  .link-btn[disabled] { opacity: 0.45; cursor: default; }
   .link-btn.danger { color: #b91c1c; }
   .muted { color: #7a756c; font-size: 0.74rem; }
 

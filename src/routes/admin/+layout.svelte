@@ -17,6 +17,7 @@
     {#if admin}
       <nav class="admin-nav">
         <a href="/admin/galerias" class:active={$page.url.pathname.startsWith('/admin/galerias')}>Galerías</a>
+        <a href="/admin/videos" class:active={$page.url.pathname.startsWith('/admin/videos')}>Videos</a>
         <a href="/admin/categorias" class:active={$page.url.pathname.startsWith('/admin/categorias')}>Categorías</a>
         <a href="/admin/password" class:active={$page.url.pathname.startsWith('/admin/password')}>Contraseña</a>
       </nav>

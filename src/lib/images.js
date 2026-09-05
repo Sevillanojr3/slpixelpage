@@ -51,3 +51,13 @@ export function thumbUrl(p, slug) {
 export function fullUrl(p, slug) {
   return photoUrl(p, BEST_SIZE, slug);
 }
+
+/**
+ * URL of any raw object in the bucket addressed by key (videos, posters).
+ * Falls back to a site-relative path when no CDN base is configured, which is
+ * what local development serves out of /static.
+ */
+export function assetUrl(key) {
+  if (!key) return '';
+  return BASE ? `${BASE}/${key}` : `/${key}`;
+}

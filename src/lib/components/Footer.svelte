@@ -27,6 +27,7 @@
           <li><a href="/#sobre-mi">Sobre mí</a></li>
           <li><a href="/#servicios">Servicios</a></li>
           <li><a href="/galeria">Portafolio</a></li>
+          <li><a href="/videos">Videos</a></li>
           <li><a href="/#contacto">Contacto</a></li>
         </ul>
       </div>

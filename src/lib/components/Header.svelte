@@ -33,6 +33,7 @@
         <li><a href="/#sobre-mi" on:click={() => (menuOpen = false)}>Sobre mí</a></li>
         <li><a href="/#servicios" on:click={() => (menuOpen = false)}>Servicios</a></li>
         <li><a href="/galeria" class:active={$page.url.pathname.startsWith('/galeria')} on:click={() => (menuOpen = false)}>Portafolio</a></li>
+        <li><a href="/videos" class:active={$page.url.pathname.startsWith('/videos')} on:click={() => (menuOpen = false)}>Videos</a></li>
         <li><a href="/#contacto" on:click={() => (menuOpen = false)}>Contacto</a></li>
         <li class="nav-toggle-mobile"><ThemeToggle /></li>
       </ul>

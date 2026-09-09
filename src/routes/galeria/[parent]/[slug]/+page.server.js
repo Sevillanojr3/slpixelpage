@@ -42,6 +42,8 @@ export async function load({ params, cookies, locals, url }) {
     parent: parentSummary,
     child: {
       ...sanitize(child),
+      // El capítulo hereda el fotógrafo del evento salvo que tenga uno propio.
+      photographer: child.photographer || parent.photographer || null,
     },
     downloadsUnlocked: unlocked,
     // A subgallery with no cover of its own inherits the parent's.

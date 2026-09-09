@@ -58,6 +58,12 @@
             <p>{humanDate}</p>
           </div>
         {/if}
+        {#if gallery.photographer}
+          <div>
+            <span class="label">Fotografía</span>
+            <p>{gallery.photographer}</p>
+          </div>
+        {/if}
         <div>
           <span class="label">Secuencia</span>
           <p>
@@ -291,7 +297,8 @@
 
   .head-info {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 220px));
+    /* auto-fit: los huecos vacíos colapsan, así que sirve con o sin fotógrafo. */
+    grid-template-columns: repeat(auto-fit, minmax(0, 220px));
     gap: 2.5rem;
   }
 

@@ -247,6 +247,16 @@
         <input name="date" type="date" value={gallery.date || ''} />
       </label>
     </div>
+    <div class="row">
+      <label>
+        <span>Fotógrafo</span>
+        <input
+          name="photographer"
+          value={gallery.photographer || ''}
+          placeholder="Ej. Jesús Sevillano (opcional)"
+        />
+      </label>
+    </div>
     {#if form?.error}<p class="error">{form.error}</p>{/if}
     {#if form?.ok}<p class="ok">Guardado.</p>{/if}
     <button type="submit" class="btn">Guardar cambios</button>

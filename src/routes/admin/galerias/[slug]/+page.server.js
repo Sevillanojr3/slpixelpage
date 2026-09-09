@@ -47,6 +47,7 @@ export const load = async ({ params }) => {
       title: gallery.title || gallery.h1 || gallery.slug,
       category: gallery.category || null,
       date: gallery.date || null,
+      photographer: gallery.photographer || null,
       h1: gallery.h1 || null,
       photos: gallery.photos || [],
       ogImage: gallery.ogImage || null,
@@ -73,8 +74,9 @@ export const actions = {
     const title = (form.get('title') || '').toString().trim();
     const category = (form.get('category') || '').toString() || null;
     const date = (form.get('date') || '').toString() || null;
+    const photographer = (form.get('photographer') || '').toString().trim() || null;
     if (!title) return fail(400, { error: 'Título requerido.' });
-    await upsertGallery({ slug: params.slug, title, category, date });
+    await upsertGallery({ slug: params.slug, title, category, date, photographer });
     return { ok: true };
   },
 

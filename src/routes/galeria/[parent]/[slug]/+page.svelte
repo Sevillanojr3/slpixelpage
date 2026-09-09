@@ -39,6 +39,12 @@
             <p>{humanDate}</p>
           </div>
         {/if}
+        {#if child.photographer}
+          <div>
+            <span class="label">Fotografía</span>
+            <p>{child.photographer}</p>
+          </div>
+        {/if}
         <div>
           <span class="label">Pertenece a</span>
           <p><a href={`/galeria/${parent.slug}`} class="parent-link">{parentTitle}</a></p>
@@ -142,7 +148,8 @@
 
   .head-info {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 220px));
+    /* auto-fit: los huecos vacíos colapsan, así que sirve con o sin fotógrafo. */
+    grid-template-columns: repeat(auto-fit, minmax(0, 220px));
     gap: 2.5rem;
   }
   .head-info .label { display: block; margin-bottom: 0.4rem; }

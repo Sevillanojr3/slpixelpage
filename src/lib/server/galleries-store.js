@@ -26,6 +26,19 @@ export const isProtected = (g) => Boolean(g?.passwordHash);
 export const isHidden = (g) => Boolean(g?.hidden);
 export const isChild = (g) => Boolean(g?.parent);
 
+/**
+ * Una subgalería hereda la visibilidad del padre: si el padre está oculto (o ya
+ * no existe), la subgalería tampoco debe aparecer en las listas públicas.
+ * @param {object} gallery
+ * @param {object[]} all - catálogo completo, para resolver el padre.
+ */
+export function isPubliclyVisible(gallery, all) {
+  if (!gallery || isHidden(gallery)) return false;
+  if (!isChild(gallery)) return true;
+  const parent = all.find((g) => g.slug === gallery.parent);
+  return Boolean(parent) && !isHidden(parent);
+}
+
 const DEFAULT_CATEGORIES = [
   { id: 'eventos', label: 'Eventos' },
   { id: 'deportes', label: 'Deportes' },

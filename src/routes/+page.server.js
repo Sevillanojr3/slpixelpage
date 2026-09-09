@@ -1,13 +1,14 @@
-import { read } from '$lib/server/galleries-store.js';
+import { read, isPubliclyVisible } from '$lib/server/galleries-store.js';
 import { buildSiteSeo } from '$lib/seo.js';
 
 export const prerender = false;
 
 export async function load({ url }) {
   const data = await read();
-  // Public-safe view of each gallery (strip auth fields, drop hidden ones).
+  // Public-safe view of each gallery (strip auth fields, drop hidden ones and
+  // the subgalleries hanging off a hidden parent).
   const galleries = data.galleries
-    .filter((g) => !g.hidden)
+    .filter((g) => isPubliclyVisible(g, data.galleries))
     .map((g) => {
       const { passwordHash, salt, ...rest } = g;
       return {
